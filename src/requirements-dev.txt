@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+croniter
+event-scheduler
+keyboard
