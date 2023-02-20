@@ -2,6 +2,8 @@ import yaml
 
 import sys
 
+from helper.logger import Logger
+
 log_debug = Logger.get("config", Logger.Level.DEBUG, sys.stdout).debug
 log_error = Logger.get("config", Logger.Level.ERROR, sys.stderr).error
 
@@ -13,24 +15,24 @@ class ConfigDBType(Enum):
     POSTGRES = "postgres"
 
 
-class Configuration:
+class AppConfig:
     CONFIG_DATA: dict = {}
 
     def __init__(self, config_yaml_file=None, config_data=None):
-        Configuration.CONFIG_DATA: dict = {}
+        AppConfig.CONFIG_DATA: dict = {}
         try:
             if config_yaml_file:
                 with open(config_yaml_file) as config_file:
-                    Configuration.CONFIG_DATA = yaml.load(
+                    AppConfig.CONFIG_DATA = yaml.load(
                         config_file, Loader=yaml.FullLoader
                     )
             elif config_data:
-                Configuration.CONFIG_DATA = config_data
+                AppConfig.CONFIG_DATA = config_data
             else:
                 raise Exception("No configuration data")
 
         except Exception as ex:
-            Configuration.CONFIG_DATA = {}
+            AppConfig.CONFIG_DATA = {}
             raise Exception("No configuration data found")
 
     @classmethod
@@ -59,5 +61,5 @@ class Configuration:
 
 
 if __name__ == "__main__":
-    conf = Configuration("/Users/jinwonchoi/github/ms2postgres/config/config.yaml")
-    print(Configuration.get("mssql"))
+    conf = AppConfig("/Users/jinwonchoi/github/ms2postgres/config/config.yaml")
+    print(AppConfig.get("mssql"))

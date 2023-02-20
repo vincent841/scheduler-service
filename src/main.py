@@ -1,6 +1,15 @@
 import uvicorn
 
+from schedule.schedule_loop import TimestampEventLoop
+
+from config import SCHEDULE_DBNAME
+
 if __name__ == "__main__":
+    # event process loop as a thread
+    event_loop = TimestampEventLoop(SCHEDULE_DBNAME)
+    event_loop.start()
+
+    # fast api
     uvicorn.run(
         "api.api_main:fast_api",
         host="0.0.0.0",

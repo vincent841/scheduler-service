@@ -1,0 +1,9 @@
+---
+connection:
+  maindb:
+    host: aaa.bbb.com
+    port: 5432
+    id: ...
+    pw: ...
+    db: ...
+  

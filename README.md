@@ -2,7 +2,7 @@
 
 ## Prerequistes
 
-- python 3.6 & 3.7 & 3.8 & 3.9 & 3.10
+- python 3.6 or later
 
 
 ## Install the required modules
@@ -14,7 +14,7 @@ pip install -r src/requirements.txt
 
 ## Code Formatter
 
-### Install Black
+#### Install Black
 
 ```bash
 pip install black
@@ -27,9 +27,16 @@ cd src
 python3 main.py
 ```
 
+## Run test codes.
+
+```bash
+cd src
+python3 -m unittest discover -s unit_test -p "*_test.py"
+```
+
 ## Deployment
 
-### build a docker image
+#### Build a docker image
 
 ```bash
 # build a docker image
