@@ -1,12 +1,12 @@
 import uvicorn
 
-from schedule.schedule_loop import TimestampEventLoop
+from schedule.schedule_loop import ScheduleEventLoop
 
 from config import SCHEDULE_DBNAME
 
 if __name__ == "__main__":
     # event process loop as a thread
-    event_loop = TimestampEventLoop(SCHEDULE_DBNAME)
+    event_loop = ScheduleEventLoop(SCHEDULE_DBNAME)
     event_loop.start()
 
     # fast api

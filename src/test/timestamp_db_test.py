@@ -5,7 +5,7 @@ from db.timestamp_db import TimestampDB
 
 
 class TimestampDBTest(TestCase):
-    DB_NAME = "unittest_lmdb"
+    DB_NAME = "../db/unittest_lmdb"
 
     def test_timestamp_1(self):
         tdb = TimestampDB(TimestampDBTest.DB_NAME)

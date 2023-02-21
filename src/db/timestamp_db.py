@@ -1,18 +1,21 @@
 import sys
 import time
 import lmdb
+import json
 
 from helper.logger import Logger
+from helper.util import print_elasped_time
 
 
 class TimestampDB:
     DB_NAME = "tsdb"
+    DB_MAP_SIZE = 250 * 1024 * 1024
 
     def __init__(self, path):
         self.initialized: bool = False
         try:
             self._imdb_env = lmdb.open(
-                path, create=True, map_size=250 * 1024 * 1024, max_dbs=2
+                path, create=True, map_size=TimestampDB.DB_MAP_SIZE, max_dbs=2
             )
             self.tsdb = self._imdb_env.open_db(
                 TimestampDB.DB_NAME.encode(), dupsort=True
@@ -32,14 +35,24 @@ class TimestampDB:
             raise Exception("Database is not initialized.")
 
     @staticmethod
-    def convert_type(indata):
-        return indata.encode() if type(indata) == str else str(indata).encode()
+    def convert_to_bin(indata):
+        return (
+            indata.encode()
+            if type(indata) == str
+            else json.dumps(indata).encode()
+            if type(indata) == dict
+            else str(indata).encode()
+        )
+
+    @staticmethod
+    def convert_to_dict(indata):
+        return json.loads(indata.decode("utf-8"))
 
     def put(self, tstamp, tdata):
         self.check_database_initialized()
         # convert input key & value data to bytearray
-        tstamp = TimestampDB.convert_type(tstamp)
-        tdata = TimestampDB.convert_type(tdata)
+        tstamp = TimestampDB.convert_to_bin(tstamp)
+        tdata = TimestampDB.convert_to_bin(tdata)
         with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
             txn.put(tstamp, tdata, db=self.tsdb)
 
@@ -57,15 +70,15 @@ class TimestampDB:
             key_list = [key for key, _ in txn.cursor()]
         return key_list
 
-    def trigger_events(self):
+    def trigger_events(self) -> list:
         self.check_database_initialized()
-
-        event_data = None
+        event_data_list = list()
         with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
             curr_tstamp = time.time_ns()
             cursor = txn.cursor()
             for key, value in cursor.iternext():
                 if int(key) <= curr_tstamp:
                     event_data = cursor.pop(key)
-
-        return event_data
+                    event_data_list.append(TimestampDB.convert_to_dict(event_data))
+                    break
+        return event_data_list
