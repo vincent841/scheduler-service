@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: schevt-queue-pv
+spec:
+  storageClassName: efs-sc
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0492a00d30f2204ef
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: schevt-queue-pvc
+spec:
+  storageClassName: efs-sc
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 512M

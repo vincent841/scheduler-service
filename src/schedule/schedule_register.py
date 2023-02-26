@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from db.timestamp_db import TimestampDB
 
-from config import SCHEDULE_DBNAME
+from config import Config
 import uuid
 from croniter import croniter
 from datetime import datetime
@@ -20,7 +20,7 @@ class ScheduleEventRegister:
     def __init__(self, event: ScheduleEvent):
         self.event = event
         try:
-            self.tdb = TimestampDB(SCHEDULE_DBNAME)
+            self.tdb = TimestampDB(Config.evt_queue())
             assert (
                 self.event["name"]
                 and self.event["type"]

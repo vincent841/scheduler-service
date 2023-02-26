@@ -1,9 +1,16 @@
+# change the file name to 'config.yaml' to be reffered by 
+
 ---
-connection:
-  maindb:
-    host: aaa.bbb.com
-    port: 5432
-    id: ...
-    pw: ...
-    db: ...
-  
+masterdb:
+  host: abc.com
+  port: 1234
+  id: username
+  pw: likepassword
+  db: likedbname
+localqueue:
+  evt_queue: evt_queue
+eventbus:
+  type: kafka
+  host: localhost:9092
+  topic: schevt
+  additional: ~

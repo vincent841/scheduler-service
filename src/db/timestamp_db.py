@@ -3,13 +3,14 @@ import time
 import lmdb
 import json
 
-from helper.logger import Logger
-from helper.util import print_elasped_time
+# from helper.logger import Logger
+# from helper.util import print_elasped_time
 
 
 class TimestampDB:
-    DB_NAME = "tsdb"
-    DB_MAP_SIZE = 250 * 1024 * 1024
+    TSDB_NAME = "tsdb"
+    DLQDB_NAME = "dlqdb"
+    DB_MAP_SIZE = 250 * 1024 * 1024  # default map isze : 250M
 
     def __init__(self, path):
         self.initialized: bool = False
@@ -18,7 +19,10 @@ class TimestampDB:
                 path, create=True, map_size=TimestampDB.DB_MAP_SIZE, max_dbs=2
             )
             self.tsdb = self._imdb_env.open_db(
-                TimestampDB.DB_NAME.encode(), dupsort=True
+                TimestampDB.TSDB_NAME.encode(), dupsort=True
+            )
+            self.dlqdb = self._imdb_env.open_db(
+                TimestampDB.DLQDB_NAME.encode(), dupsort=True
             )
         except Exception as ex:
             print(ex, file=sys.stderr)

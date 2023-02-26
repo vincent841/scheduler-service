@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: schevt-mgr
+  name: schevt-mgr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schevt-mgr
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: schevt-mgr
+    spec:
+      containers:
+        - image: hatiolab/schevt-mgr:latest
+          imagePullPolicy: Always
+          name: schevt-mgr
+          resources:
+            requests:
+              cpu: 256m
+              memory: 256Mi
+          volumeMounts:
+            - name: schevt-storage
+              mountPath: /app/db
+            - name: config-volume
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+          securityContext:
+            privileged: false
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: config-volume
+          configMap:
+            name: schevt-mgr-cfgmap
+        - name: schevt-storage
+          persistentVolumeClaim:
+            claimName: schevt-queue-pvc
+

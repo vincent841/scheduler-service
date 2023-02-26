@@ -2,11 +2,13 @@ import uvicorn
 
 from schedule.schedule_loop import ScheduleEventLoop
 
-from config import SCHEDULE_DBNAME
+from config import Config
+
+Config("../config/config.yaml")
 
 if __name__ == "__main__":
     # event process loop as a thread
-    event_loop = ScheduleEventLoop(SCHEDULE_DBNAME)
+    event_loop = ScheduleEventLoop(Config.evt_queue())
     event_loop.start()
 
     # fast api
