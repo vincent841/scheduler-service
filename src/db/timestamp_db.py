@@ -70,9 +70,17 @@ class TimestampDB:
 
     def get_key_list(self):
         self.check_database_initialized()
+        key_list = list()
         with self._imdb_env.begin(db=self.tsdb) as txn:
             key_list = [key for key, _ in txn.cursor()]
         return key_list
+
+    def get_key_value_list(self):
+        self.check_database_initialized()
+        key_value_list = list()
+        with self._imdb_env.begin(db=self.tsdb) as txn:
+            key_value_list = [(key, value) for key, value in txn.cursor()]
+        return key_value_list
 
     def trigger_events(self) -> list:
         self.check_database_initialized()

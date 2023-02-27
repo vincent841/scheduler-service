@@ -10,7 +10,6 @@ from eventbus.eventbus_mgr import EventBusManager
 
 import eventbus.eventbus_import as im
 
-
 from helper.logger import Logger
 
 log_debug = Logger.get("schloop", Logger.Level.DEBUG, sys.stdout).debug
@@ -29,11 +28,12 @@ class ScheduleEventLoop(threading.Thread):
     RESOLUTION = 0.1  # 100ms
     EVENTBUS_ACTIVE_LIST = im.EVENTBUS_ACTIVE_MODULE_LIST
 
-    def __init__(self, db_path):
+    def __init__(self, db_path, event):
         threading.Thread.__init__(self)
         self.tdb = TimestampDB(db_path)
         self.event_list = list()
         self.event_bus = None
+        self.exit_event = event
 
     def close(self):
         self.tdb.close()
@@ -70,3 +70,6 @@ class ScheduleEventLoop(threading.Thread):
 
             # delay the time
             time.sleep(ScheduleEventLoop.RESOLUTION)
+
+            if self.exit_event.is_set():
+                break

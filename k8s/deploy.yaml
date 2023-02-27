@@ -5,6 +5,7 @@ metadata:
   labels:
     app: schevt-mgr
   name: schevt-mgr
+  namespace: schevt
 spec:
   replicas: 1
   selector:
@@ -27,7 +28,7 @@ spec:
               memory: 256Mi
           volumeMounts:
             - name: schevt-storage
-              mountPath: /app/db
+              mountPath: /data
             - name: config-volume
               mountPath: /app/config.yaml
               subPath: config.yaml
@@ -41,5 +42,5 @@ spec:
             name: schevt-mgr-cfgmap
         - name: schevt-storage
           persistentVolumeClaim:
-            claimName: schevt-queue-pvc
+            claimName: efs-schevt-pvc
 
