@@ -11,4 +11,4 @@ def api_register(req_schedule):
         return {"name": req_schedule["name"], "resp_id": resp}
     except Exception as ex:
         print(traceback.format_exc())
-        return {"error": f'{req_schedule["type"]}: {str(type(ex))} - {ex}'}
+        return {"error": f'{req_schedule["name"]}: {ex}'}

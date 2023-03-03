@@ -1,8 +1,10 @@
 fastapi
 uvicorn[standard]
+httpx
 croniter
 event-scheduler
 lmdb
 requests
 psycopg2
 confluent_kafka
+sqlalchemy

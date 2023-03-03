@@ -1,14 +1,17 @@
 import json
 from confluent_kafka import Producer
 
-from eventbus.eventbus_mgr import EventBusManager
-from eventbus.eventbus_abstract import EventBus
+from task.task_mgr import TaskManager
+from task.task_abstract import Task
+
+"""
+TODO: change the kafka module to 'aiokakfa'
+"""
 
 
-class EventBusKafka(EventBus):
+class TaskKafka(Task):
     def __init__(self):
         self.producer = None
-        self.topic = ""
 
     def get_name(self):
         return "kafka"
@@ -16,36 +19,33 @@ class EventBusKafka(EventBus):
     def connect(self, **kargs):
         try:
             self.producer = Producer({"bootstrap.servers": kargs["host"]})
-            self.topic = kargs["topic"]
             self.producer.poll(0)
-
         except Exception as ex:
             pass
 
-    def trigger(self, **kargs):
+    async def run(self, **kargs):
         try:
             produce_data = (
                 json.dumps(kargs["data"])
                 if type(kargs["data"]) is dict
                 else str(kargs["data"])
-            )
+            ).encode("utf-8")
 
             # Asynchronously produce a message, the delivery report callback
             # will be triggered from poll() above, or flush() below, when the message has
             # been successfully delivered or failed permanently.
-            self.producer.produce(
-                self.topic,
-                produce_data.encode("utf-8"),
-            )
+            if kargs["service"]:
+                self.producer.produce(kargs["service_topic"], produce_data)
+            else:
+                self.producer.produce(kargs["resp_topic"], produce_data)
 
             self.producer.poll(0)
         except Exception as ex:
             print("Exception: ", ex)
-
         finally:
             # Wait for any outstanding messages to be delivered and delivery report
             # callbacks to be triggered.
             self.producer.flush()
 
 
-EventBusManager.register("kafka", EventBusKafka)
+TaskManager.register("kafka", TaskKafka)

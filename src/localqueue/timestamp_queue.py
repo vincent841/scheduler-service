@@ -7,7 +7,7 @@ import json
 # from helper.util import print_elasped_time
 
 
-class TimestampDB:
+class TimestampQueue:
     TSDB_NAME = "tsdb"
     DLQDB_NAME = "dlqdb"
     DB_MAP_SIZE = 250 * 1024 * 1024  # default map isze : 250M
@@ -16,13 +16,13 @@ class TimestampDB:
         self.initialized: bool = False
         try:
             self._imdb_env = lmdb.open(
-                path, create=True, map_size=TimestampDB.DB_MAP_SIZE, max_dbs=2
+                path, create=True, map_size=TimestampQueue.DB_MAP_SIZE, max_dbs=2
             )
             self.tsdb = self._imdb_env.open_db(
-                TimestampDB.TSDB_NAME.encode(), dupsort=True
+                TimestampQueue.TSDB_NAME.encode(), dupsort=True
             )
             self.dlqdb = self._imdb_env.open_db(
-                TimestampDB.DLQDB_NAME.encode(), dupsort=True
+                TimestampQueue.DLQDB_NAME.encode(), dupsort=True
             )
         except Exception as ex:
             print(ex, file=sys.stderr)
@@ -55,8 +55,8 @@ class TimestampDB:
     def put(self, tstamp, tdata):
         self.check_database_initialized()
         # convert input key & value data to bytearray
-        tstamp = TimestampDB.convert_to_bin(tstamp)
-        tdata = TimestampDB.convert_to_bin(tdata)
+        tstamp = TimestampQueue.convert_to_bin(tstamp)
+        tdata = TimestampQueue.convert_to_bin(tdata)
         with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
             txn.put(tstamp, tdata, db=self.tsdb)
 
@@ -83,14 +83,19 @@ class TimestampDB:
         return key_value_list
 
     def trigger_events(self) -> list:
-        self.check_database_initialized()
-        event_data_list = list()
-        with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
-            curr_tstamp = time.time_ns()
-            cursor = txn.cursor()
-            for key, value in cursor.iternext():
-                if int(key) <= curr_tstamp:
-                    event_data = cursor.pop(key)
-                    event_data_list.append(TimestampDB.convert_to_dict(event_data))
-                    break
+        try:
+            self.check_database_initialized()
+            event_data_list = list()
+            with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
+                curr_tstamp = time.time_ns()
+                cursor = txn.cursor()
+                for key, value in cursor.iternext():
+                    if int(key) <= curr_tstamp:
+                        event_data = cursor.pop(key)
+                        event_data_list.append(TimestampQueue.convert_to_dict(event_data))
+                        break
+        except Exception as ex:
+            print("trigger event error: ", ex)
+            event_data_list = []
+
         return event_data_list

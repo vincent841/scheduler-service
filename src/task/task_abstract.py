@@ -1,7 +1,7 @@
 from abc import *
 
 
-class EventBus(metaclass=ABCMeta):
+class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_name(self) -> str:
         pass
@@ -11,5 +11,5 @@ class EventBus(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def trigger(self, **kargs):
+    async def run(self, **kargs):
         pass

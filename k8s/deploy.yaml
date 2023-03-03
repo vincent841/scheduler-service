@@ -19,7 +19,7 @@ spec:
         app: schevt-mgr
     spec:
       containers:
-        - image: hatiolab/schevt-mgr:latest
+        - image: hatiolab/schevt-mgr:0.0.1
           imagePullPolicy: Always
           name: schevt-mgr
           resources:

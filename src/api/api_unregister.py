@@ -11,4 +11,4 @@ def api_unregister(unregister_data):
         return {"resp_id": unregister_data["resp_id"]}
     except Exception as ex:
         print(traceback.format_exc())
-        return {"error": f"{unregister_data}: {str(type(ex))} - {ex}"}
+        return {"error": f'{unregister_data["name"]}: {ex}'}

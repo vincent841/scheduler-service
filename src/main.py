@@ -1,21 +1,13 @@
 import uvicorn
 
-from schedule.schedule_loop import ScheduleEventLoop
 
 from config import Config
 
-import os
-
-print(os.getcwd())
-
-Config("config.yaml")
-
 if __name__ == "__main__":
-    # # event process loop as a thread
-    # event_loop = ScheduleEventLoop(Config.evt_queue())
-    # event_loop.start()
+    # create application configuration
+    Config("config.yaml")
 
-    # fast api
+    # run fastapi server using uvicorn
     uvicorn.run(
         "api.api_main:fast_api",
         host="0.0.0.0",
