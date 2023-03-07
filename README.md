@@ -1,8 +1,14 @@
 # Event Notification Service(ENS)
 
+
+## User
+
+
+
+
 ## Prerequistes
 
-- python 3.6 or later
+- python 3.9 or later
 
 
 ## Install the required modules
@@ -45,3 +51,4 @@ python3 -m unittest discover -s unit_test -p "*_test.py"
 # push the docker image
 ./push.sh
 ```
+

@@ -50,6 +50,7 @@ class Config:
             else None
         )
 
+    # deprecated
     @classmethod
     def eventbus(cls):
         try:

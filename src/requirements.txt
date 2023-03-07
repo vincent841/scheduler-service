@@ -6,5 +6,5 @@ event-scheduler
 lmdb
 requests
 psycopg2
-confluent_kafka
+aiokafka
 sqlalchemy

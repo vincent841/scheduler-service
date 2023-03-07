@@ -4,11 +4,11 @@ import traceback
 from schedule.schedule_event_handler import ScheduleEventHandler
 
 
-def api_list():
+def api_initialize():
     print(f"request list data")
     try:
-        schedule_handler = ScheduleEventHandler()
-        resp = schedule_handler.list()
+        schedule_register = ScheduleEventHandler()
+        resp = schedule_register.list()
         resp = json.dupms(resp)
         return {
             "list": resp,

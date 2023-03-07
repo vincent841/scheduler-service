@@ -34,6 +34,11 @@ spec:
               subPath: config.yaml
           securityContext:
             privileged: false
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
       restartPolicy: Always
       serviceAccountName: ""
       volumes:

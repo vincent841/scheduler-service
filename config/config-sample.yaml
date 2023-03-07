@@ -9,8 +9,3 @@ masterdb:
   db: likedbname
 localqueue:
   evt_queue: evt_queue
-eventbus:
-  type: kafka
-  host: localhost:9092
-  topic: schevt
-  additional: ~

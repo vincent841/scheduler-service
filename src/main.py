@@ -3,10 +3,9 @@ import uvicorn
 
 from config import Config
 
-if __name__ == "__main__":
-    # create application configuration
-    Config("config.yaml")
+Config("config.yaml")
 
+if __name__ == "__main__":
     # run fastapi server using uvicorn
     uvicorn.run(
         "api.api_main:fast_api",

@@ -4,7 +4,11 @@ from api.api_register import api_register
 from api.api_unregister import api_unregister
 from api.api_list import api_list
 
-from schedule.schedule_event_handler import ScheduleRegisterData, ScheduleUnregisterData
+from schedule.schedule_type import (
+    ScheduleRegistration,
+    ScheduleUnregistration,
+)
+from schedule.schedule_event_handler import ScheduleEventHandler
 
 
 fast_api = FastAPI(
@@ -15,7 +19,8 @@ fast_api = FastAPI(
 
 @fast_api.on_event("startup")
 async def startup_event():
-    pass
+    schedule_handler = ScheduleEventHandler()
+    schedule_handler.initialize()
 
 
 @fast_api.on_event("shutdown")
@@ -24,7 +29,7 @@ async def shutdown_event():
 
 
 @fast_api.post("/register")
-async def register(input_params: ScheduleRegisterData) -> dict:
+async def register(input_params: ScheduleRegistration) -> dict:
     """
     register a schedule event
     """
@@ -32,7 +37,7 @@ async def register(input_params: ScheduleRegisterData) -> dict:
 
 
 @fast_api.post("/unregister")
-async def unregister(input_params: ScheduleUnregisterData) -> dict:
+async def unregister(input_params: ScheduleUnregistration) -> dict:
     """
     unregister a schedule event
     """
