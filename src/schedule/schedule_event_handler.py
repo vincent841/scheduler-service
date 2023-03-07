@@ -130,7 +130,7 @@ class ScheduleEventHandler:
                 # 2. pop the event from localqueue if found
                 if key_decoded == input_data["name"]:
                     self.tdb.pop(key)
-                # 3. remove it from running_schedules
+                # 3. remove it from running_schedules and cancel it
                 future_event = self.running_schedules.pop(input_data["name"], None)
                 future_event.cancel()
 
@@ -140,37 +140,44 @@ class ScheduleEventHandler:
         return {"name": input_data["name"]}
 
     def list(self):
-        item_list = list()
+        list_item = dict()
         try:
             # 1. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list()
             for key, value in key_value_events:
-                item_list.append(
-                    {key.decode("utf-8"), json.loads(value.decode("utf-8"))}
-                )
+                value_dict = json.loads(value.decode("utf-8"))
+                list_item[key.decode("utf-8")] = value_dict
         except Exception as ex:
             raise ex
 
-        return item_list
+        return list_item
 
     def register_next(self, schedule_event):
         try:
+            # 1. check scheluer event type
             if schedule_event["type"] == "cron" or schedule_event["type"] == "delay":
+                # 2. calculate the next timestamp and delay based on schedule_event
                 (next_time, delay) = ScheduleEventNext.get_next_and_delay(
                     schedule_event
                 )
+
                 input_data_task = schedule_event["task"]
+
+                # 3. reset the retry count
                 input_data_task["retry"] = 0
+                # 4. set next timestamp
                 input_data_task["next"] = next_time
 
+                # 5. set the evetn to the localqueue
                 self.tdb.put(schedule_event["name"], schedule_event)
 
-                asyncio.run_coroutine_threadsafe(
+                handle_event_future = asyncio.run_coroutine_threadsafe(
                     self.handle_event(
                         schedule_event["name"], schedule_event.copy(), delay
                     ),
                     asyncio.get_event_loop(),
                 )
+                self.running_schedules[schedule_event["name"]] = handle_event_future
         except Exception as ex:
             raise ex
 
