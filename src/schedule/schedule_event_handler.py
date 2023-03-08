@@ -14,7 +14,8 @@ import sys
 from helper.logger import Logger
 
 log_debug = Logger.get("schevt", Logger.Level.DEBUG, sys.stdout).debug
-log_warning = Logger.get("schevt", Logger.Level.DEBUG, sys.stdout).warning
+log_info = Logger.get("schevt", Logger.Level.INFO, sys.stdout).info
+log_warning = Logger.get("schevt", Logger.Level.WARNING, sys.stdout).warning
 log_error = Logger.get("schevt", Logger.Level.ERROR, sys.stderr).error
 
 
@@ -49,28 +50,31 @@ class ScheduleEventHandler:
     #         raise ex
 
     def initialize(self):
-        # get the current instance name
-        self.instance_name = os.environ.get(
-            "POD_NAME", ScheduleEventHandler.LOCAL_POD_NAME
-        )
-        if self.instance_name == ScheduleEventHandler.LOCAL_POD_NAME:
-            log_warning(
-                "cannot find environment variable POD_NAME, so assume that th only one instance is running."
+        try:
+            # get the current instance name
+            self.instance_name = os.environ.get(
+                "POD_NAME", ScheduleEventHandler.LOCAL_POD_NAME
             )
+            if self.instance_name == ScheduleEventHandler.LOCAL_POD_NAME:
+                log_warning(
+                    "cannot find environment variable POD_NAME, so assume that th only one instance is running."
+                )
 
-        key_value_events = self.tdb.get_key_value_list()
-        for key, value in key_value_events:
-            key = key.decode("utf-8")
-            value = convert_bytearray_to_dict(value)
-            assert (type(key) is str) and (type(value) is dict)
+            key_value_events = self.tdb.get_key_value_list()
+            for key, value in key_value_events:
+                key = key.decode("utf-8")
+                value = convert_bytearray_to_dict(value)
+                assert (type(key) is str) and (type(value) is dict)
 
-            schedule_event = value
-            if schedule_event["instance"] == self.instance_name:
-                schedule_event["name"] = key
-                log_debug(f"reigstering {schedule_event}")
-                self.register(schedule_event)
+                schedule_event = value
+                if schedule_event["instance"] == self.instance_name:
+                    schedule_event["name"] = key
+                    log_debug(f"reigstering {schedule_event}")
+                    self.register(schedule_event)
 
-        log_debug("initialization done..")
+            log_debug("initialization done..")
+        except Exception as ex:
+            log_error(f"Initializaiton Error: {ex}")
 
     def register(self, input_data: dict):
         try:
@@ -206,7 +210,7 @@ class ScheduleEventHandler:
                     self.tdb.pop(key)
 
         except Exception as ex:
-            print(f"Exception: {ex}")
+            log_error(f"Exception: {ex}")
 
             # increase the retry count
             task_info["retry"] += 1
