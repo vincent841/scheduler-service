@@ -1,14 +1,14 @@
 import time
 from unittest import TestCase, main
 
-from localqueue.timestamp_queue import TimestampQueue
+from localqueue.local_queue import LocalQueue
 
 
 class TimestampDBTest(TestCase):
     DB_NAME = "../db/unittest_lmdb"
 
     def test_timestamp_1(self):
-        tdb = TimestampQueue(TimestampDBTest.DB_NAME)
+        tdb = LocalQueue(TimestampDBTest.DB_NAME)
 
         tstamp = time.time_ns() + 5000000000
         event_data = {"name": "test1", "tstamp": tstamp, "type": "absolute", "data": 1}
@@ -20,7 +20,7 @@ class TimestampDBTest(TestCase):
         print(tdb.get_key_list())
 
     def test_timestamp_2(self):
-        tdb = TimestampQueue(TimestampDBTest.DB_NAME)
+        tdb = LocalQueue(TimestampDBTest.DB_NAME)
         key_list = tdb.get_key_list()
 
         for key in key_list:
@@ -29,7 +29,7 @@ class TimestampDBTest(TestCase):
         print(f"final: {tdb.get_key_list()}")
 
     def test_timestamp_3(self):
-        tdb = TimestampQueue(TimestampDBTest.DB_NAME)
+        tdb = LocalQueue(TimestampDBTest.DB_NAME)
 
         tstamp = time.time_ns() + 5000000000
         event_data = {"name": "test1", "tstamp": tstamp, "type": "absolute", "data": 1}

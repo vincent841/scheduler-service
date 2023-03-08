@@ -4,7 +4,7 @@ import asyncio
 import uuid
 
 from config import Config
-from localqueue.timestamp_queue import TimestampQueue
+from localqueue.local_queue import LocalQueue
 from schedule.schedule_next import ScheduleEventNext
 from task.task_mgr import TaskManager
 from task.task_import import TASK_ACTIVE_MODULE_LIST
@@ -34,7 +34,7 @@ class ScheduleEventHandler:
         cls = type(self)
         if not hasattr(cls, "_init"):
             try:
-                self.tdb = TimestampQueue(Config.evt_queue())
+                self.tdb = LocalQueue(Config.evt_queue())
                 self.running_schedules = dict()
                 self.instance_name = ScheduleEventHandler.LOCAL_POD_NAME
                 cls._init = True
@@ -44,7 +44,7 @@ class ScheduleEventHandler:
     #  common constructor
     # def __init__(self):
     #     try:
-    #         self.tdb = TimestampQueue(Config.evt_queue())
+    #         self.tdb = LocalQueue(Config.evt_queue())
     #         self.running_schedules = list()
     #     except Exception as ex:
     #         raise ex
@@ -99,9 +99,12 @@ class ScheduleEventHandler:
             # 3. get the next timestamp and the delay based on schedule format
             (next_time, delay) = ScheduleEventNext.get_next_and_delay(input_data)
 
-            # 4. update some additional data like next and retry
             # TODO: add some additional key-values (status, ...)
             input_data_task = input_data["task"]
+            # 4.1 check if task type is available
+            if not input_data_task["type"] in TaskManager.all():
+                raise Exception("task type unavailable.")
+            # 4.2 update some additional data like next and retry
             input_data_task["retry"] = 0
             input_data_task["next"] = next_time
 

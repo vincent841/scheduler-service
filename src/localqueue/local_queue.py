@@ -7,7 +7,7 @@ import json
 # from helper.util import print_elasped_time
 
 
-class TimestampQueue:
+class LocalQueue:
     TSDB_NAME = "tsdb"
     DLQDB_NAME = "dlqdb"
     DB_MAP_SIZE = 250 * 1024 * 1024  # default map isze : 250M
@@ -16,14 +16,14 @@ class TimestampQueue:
         self.initialized: bool = False
         try:
             self._imdb_env = lmdb.open(
-                path, create=True, map_size=TimestampQueue.DB_MAP_SIZE, max_dbs=2
+                path, create=True, map_size=LocalQueue.DB_MAP_SIZE, max_dbs=2
             )
             # if duplicated key is allowed, dupsort is set to True
             self.tsdb = self._imdb_env.open_db(
-                TimestampQueue.TSDB_NAME.encode(), dupsort=False
+                LocalQueue.TSDB_NAME.encode(), dupsort=False
             )
             self.dlqdb = self._imdb_env.open_db(
-                TimestampQueue.DLQDB_NAME.encode(), dupsort=False
+                LocalQueue.DLQDB_NAME.encode(), dupsort=False
             )
         except Exception as ex:
             print(ex, file=sys.stderr)
@@ -62,8 +62,8 @@ class TimestampQueue:
     def _put(self, tstamp, tdata, db):
         self.check_database_initialized()
         # convert input key & value data to bytearray
-        tstamp = TimestampQueue.convert_to_bin(tstamp)
-        tdata = TimestampQueue.convert_to_bin(tdata)
+        tstamp = LocalQueue.convert_to_bin(tstamp)
+        tdata = LocalQueue.convert_to_bin(tdata)
         with self._imdb_env.begin(db=db, write=True) as txn:
             txn.put(tstamp, tdata, db=db)
 
@@ -110,9 +110,7 @@ class TimestampQueue:
                 for key, _ in cursor.iternext():
                     if int(key) <= curr_tstamp:
                         event_data = cursor.pop(key)
-                        event_data_list.append(
-                            TimestampQueue.convert_to_dict(event_data)
-                        )
+                        event_data_list.append(LocalQueue.convert_to_dict(event_data))
                         break
         except Exception as ex:
             print("trigger event error: ", ex)
