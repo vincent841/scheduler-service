@@ -225,5 +225,5 @@ class ScheduleEventHandler:
             self.tdb.put(key, value)
             # this event will be sent to DLQ if retry count limit is reached to the limit
             if task_info["retry"] >= ScheduleEventHandler.TASK_RETRY_MAX:
-                self.tdb.put_to_dlq(key, value)
+                self.tdb.put(key, value, dlq=True)
                 self.tdb.pop(key)

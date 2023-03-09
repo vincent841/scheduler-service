@@ -55,11 +55,8 @@ class LocalQueue:
     def convert_to_dict(indata):
         return json.loads(indata.decode("utf-8"))
 
-    def put(self, tstamp, tdata):
-        self._put(tstamp, tdata, self.tsdb)
-
-    def put_to_dlq(self, tstamp, tdata):
-        self._put(tstamp, tdata, self.dlqdb)
+    def put(self, tstamp, tdata, dlq=False):
+        self._put(tstamp, tdata, db=self.tsdb if not dlq else self.dlqdb)
 
     def _put(self, tstamp, tdata, db):
         self.check_database_initialized()
@@ -69,12 +66,9 @@ class LocalQueue:
         with self._imdb_env.begin(db=db, write=True) as txn:
             txn.put(tstamp, tdata, db=db)
 
-    def pop(self, key):
+    def pop(self, key, dlq=False):
         key_bytes = LocalQueue.convert_to_bin(key)
-        return self._pop(key_bytes, self.tsdb)
-
-    def pop_from_dlq(self, key):
-        return self._pop(key, self.dlqdb)
+        return self._pop(key_bytes, db=self.tsdb if not dlq else self.dlqdb)
 
     def _pop(self, key, db):
         self.check_database_initialized()
@@ -84,17 +78,17 @@ class LocalQueue:
             value = cursor.pop(key)
         return value
 
-    def get_key_list(self):
+    def get_key_list(self, dlq=False):
         self.check_database_initialized()
         key_list = list()
-        with self._imdb_env.begin(db=self.tsdb) as txn:
-            key_list = [key for key, _ in txn.cursor()]
+        with self._imdb_env.begin(db=self.tsdb if not dlq else self.dlqdb) as txn:
+            key_list = [key.decode("utf-8") for key, _ in txn.cursor()]
         return key_list
 
-    def get_key_value_list(self):
+    def get_key_value_list(self, dlq=False):
         self.check_database_initialized()
         key_value_list = list()
-        with self._imdb_env.begin(db=self.tsdb) as txn:
+        with self._imdb_env.begin(db=self.tsdb if not dlq else self.dlqdb) as txn:
             key_value_list = [
                 (key.decode("utf-8"), convert_bytearray_to_dict(value))
                 for key, value in txn.cursor()
