@@ -68,6 +68,49 @@ python3 -m unittest discover -s unit_test -p "*_test.py"
 
 ![Scalable Scheduler OpenAPI](./assets/scheduler-service-openapi.png "Scalable Scheduler OpenAPI")
 
+### Task Type
+
+- Rest
+- Kafka
+- Redis
+
+
+#### Task Rest Example
+
+```json
+{
+  "name": "cron-test",
+  "type": "cron",
+  "schedule": "*/1 * * * *",
+  "task": {
+    "type": "rest",
+    "connection": {
+      "host": "http://localhost:3000/api/unstable/run-scenario/DELAY-TEST", 
+      "headers": {"Content-Type": "application/json", "accept": "*/*"},
+      "data": {"instanceName": "delay-test", "variables": {}}
+    }
+  }
+}
+```
+
+#### Task Kafka Example
+
+```json
+{
+  "name": "ap3",
+  "type": "now",
+  "schedule": "",
+  "task": {
+    "type": "kafka",
+    "connection": {
+      "host": "localhost:9092", 
+      "topic": "example-topic"},
+    "data": {"id": "toboe"}
+  }
+}
+```
+
+
 
 ## Additional Things
 
