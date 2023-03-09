@@ -6,6 +6,7 @@ import uuid
 from config import Config
 from localqueue.local_queue import LocalQueue
 from schedule.schedule_next import ScheduleEventNext
+from schedule.schedule_type import ScheduleEventType
 from task.task_mgr import TaskManager
 from task.task_import import TASK_ACTIVE_MODULE_LIST
 from helper.util import convert_bytearray_to_dict
@@ -21,7 +22,7 @@ log_error = Logger.get("schevt", Logger.Level.ERROR, sys.stderr).error
 
 class ScheduleEventHandler:
     TASK_RETRY_MAX = 3
-    LOCAL_POD_NAME = "local-scheduler"
+    DEFAULT_LOCAL_POD_NAME = "local-scheduler"
 
     # singleton constructor set
     def __new__(cls, *args, **kwargs):
@@ -36,7 +37,7 @@ class ScheduleEventHandler:
             try:
                 self.tdb = LocalQueue(Config.evt_queue())
                 self.running_schedules = dict()
-                self.instance_name = ScheduleEventHandler.LOCAL_POD_NAME
+                self.instance_name = ScheduleEventHandler.DEFAULT_LOCAL_POD_NAME
                 cls._init = True
             except Exception as ex:
                 raise ex
@@ -53,9 +54,9 @@ class ScheduleEventHandler:
         try:
             # get the current instance name
             self.instance_name = os.environ.get(
-                "POD_NAME", ScheduleEventHandler.LOCAL_POD_NAME
+                "POD_NAME", ScheduleEventHandler.DEFAULT_LOCAL_POD_NAME
             )
-            if self.instance_name == ScheduleEventHandler.LOCAL_POD_NAME:
+            if self.instance_name == ScheduleEventHandler.DEFAULT_LOCAL_POD_NAME:
                 log_warning(
                     "cannot find environment variable POD_NAME, so assume that th only one instance is running."
                 )
