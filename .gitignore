@@ -1,6 +1,7 @@
 # application-specific files
 test.db
 config.yaml
+!config/config.yaml
 .DS_Store
 db/*
 .vscode/*

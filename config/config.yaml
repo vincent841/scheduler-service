@@ -1,0 +1,12 @@
+---
+# Database conneciton info.
+# db:
+#   host: abc.com
+#   port: 1234
+#   id: username
+#   pw: likepassword
+#   db: likedbname
+
+# Local queue storage location
+localqueue:
+  evt_queue: ../db/evt_queue
