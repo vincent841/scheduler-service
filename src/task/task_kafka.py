@@ -21,15 +21,14 @@ class TaskKafka(Task):
 
     async def run(self, **kargs):
         try:
-            produce_data = (
-                json.dumps(kargs["data"])
-                if type(kargs["data"]) is dict
-                else str(kargs["data"])
-            ).encode("utf-8")
-
-            connection = kargs["connection"]
-
+            task_info = kargs["task"]
+            connection = task_info["connection"]
             topic = connection["topic"]
+            produce_data = (
+                json.dumps(task_info["data"])
+                if type(task_info["data"]) is dict
+                else str(task_info["data"])
+            ).encode()
 
             producer = AIOKafkaProducer(bootstrap_servers=connection["host"])
             # Get cluster layout and initial topic/partition leadership information
@@ -47,6 +46,8 @@ class TaskKafka(Task):
             # Wait for any outstanding messages to be delivered and delivery report
             # callbacks to be triggered.
             await producer.stop()
+
+        return True
 
 
 TaskManager.register("kafka", TaskKafka)

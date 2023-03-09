@@ -4,7 +4,7 @@ from api.api_register import api_register
 from api.api_unregister import api_unregister
 from api.api_list import api_list
 
-from schedule.schedule_type import (
+from api.api_interface import (
     ScheduleRegistration,
     ScheduleUnregistration,
 )

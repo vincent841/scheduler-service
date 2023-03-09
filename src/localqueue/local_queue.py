@@ -6,6 +6,8 @@ import json
 # from helper.logger import Logger
 # from helper.util import print_elasped_time
 
+from helper.util import convert_bytearray_to_dict
+
 
 class LocalQueue:
     TSDB_NAME = "tsdb"
@@ -68,7 +70,8 @@ class LocalQueue:
             txn.put(tstamp, tdata, db=db)
 
     def pop(self, key):
-        return self._pop(key, self.tsdb)
+        key_bytes = LocalQueue.convert_to_bin(key)
+        return self._pop(key_bytes, self.tsdb)
 
     def pop_from_dlq(self, key):
         return self._pop(key, self.dlqdb)
@@ -92,7 +95,10 @@ class LocalQueue:
         self.check_database_initialized()
         key_value_list = list()
         with self._imdb_env.begin(db=self.tsdb) as txn:
-            key_value_list = [(key, value) for key, value in txn.cursor()]
+            key_value_list = [
+                (key.decode("utf-8"), convert_bytearray_to_dict(value))
+                for key, value in txn.cursor()
+            ]
         return key_value_list
 
     """

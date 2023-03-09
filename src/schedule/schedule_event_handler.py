@@ -2,14 +2,15 @@ import os
 import json
 import asyncio
 import uuid
+from datetime import datetime
 
 from config import Config
 from localqueue.local_queue import LocalQueue
-from schedule.schedule_next import ScheduleEventNext
-from schedule.schedule_type import ScheduleEventType
+from schedule.schedule_event_type import ScheduleEventType
+from schedule.scheduler_event import ScheduleTaskStatus
 from task.task_mgr import TaskManager
 from task.task_import import TASK_ACTIVE_MODULE_LIST
-from helper.util import convert_bytearray_to_dict
+
 
 import sys
 from helper.logger import Logger
@@ -61,10 +62,9 @@ class ScheduleEventHandler:
                     "cannot find environment variable POD_NAME, so assume that th only one instance is running."
                 )
 
+            #
             key_value_events = self.tdb.get_key_value_list()
             for key, value in key_value_events:
-                key = key.decode("utf-8")
-                value = convert_bytearray_to_dict(value)
                 assert (type(key) is str) and (type(value) is dict)
 
                 schedule_event = value
@@ -79,12 +79,7 @@ class ScheduleEventHandler:
 
     def register(self, input_data: dict):
         try:
-            assert (
-                input_data["name"]
-                and input_data["type"]
-                and input_data["schedule"]
-                and input_data["task"]
-            )
+            assert input_data["name"] and input_data["type"] and input_data["task"]
 
             # 1. check if name is duplicated.
             if input_data["name"] in self.running_schedules:
@@ -98,7 +93,7 @@ class ScheduleEventHandler:
             input_data["resp_id"] = str(resp_id)
 
             # 3. get the next timestamp and the delay based on schedule format
-            (next_time, delay) = ScheduleEventNext.get_next_and_delay(input_data)
+            (next_time, delay) = ScheduleEventType.get_next_and_delay(input_data)
 
             # TODO: add some additional key-values (status, ...)
             input_data_task = input_data["task"]
@@ -108,6 +103,9 @@ class ScheduleEventHandler:
             # 4.2 update some additional data like next and retry
             input_data_task["retry"] = 0
             input_data_task["next"] = next_time
+            input_data_task["status"] = ScheduleTaskStatus.IDLE
+            input_data_task["iteration"] = 0
+            input_data_task["lastRun"] = None
 
             # 5. store the updated schedule event
             self.tdb.put(input_data["name"], input_data)
@@ -134,9 +132,8 @@ class ScheduleEventHandler:
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             key_value_events = self.tdb.get_key_value_list()
             for key, _ in key_value_events:
-                key_decoded = key.decode("utf-8")
                 # 2. pop the event from localqueue if found
-                if key_decoded == input_data["name"]:
+                if key == input_data["name"]:
                     self.tdb.pop(key)
                 # 3. remove it from running_schedules and cancel it
                 future_event = self.running_schedules.pop(input_data["name"], None)
@@ -153,8 +150,7 @@ class ScheduleEventHandler:
             # 1. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list()
             for key, value in key_value_events:
-                value_dict = json.loads(value.decode("utf-8"))
-                list_item[key.decode("utf-8")] = value_dict
+                list_item[key] = value
         except Exception as ex:
             raise ex
 
@@ -162,10 +158,10 @@ class ScheduleEventHandler:
 
     def register_next(self, schedule_event):
         try:
-            # 1. check scheluer event type
-            if schedule_event["type"] == "cron" or schedule_event["type"] == "delay":
+            # 1. check if scheluer event type is
+            if ScheduleEventType.is_recurring(schedule_event["type"]):
                 # 2. calculate the next timestamp and delay based on schedule_event
-                (next_time, delay) = ScheduleEventNext.get_next_and_delay(
+                (next_time, delay) = ScheduleEventType.get_next_and_delay(
                     schedule_event
                 )
 
@@ -186,38 +182,46 @@ class ScheduleEventHandler:
                     asyncio.get_event_loop(),
                 )
                 self.running_schedules[schedule_event["name"]] = handle_event_future
+            else:
+                # pop this schedule event if it is not ono of recurrring schedule types.
+                self.tdb.pop(schedule_event["name"])
+                self.running_schedules.pop(schedule_event["name"], None)
         except Exception as ex:
             raise ex
 
     async def handle_event(self, key, value, delay):
-        log_debug(f'handle_event start: {value["name"]}')
-        await asyncio.sleep(delay)
-
         try:
+            log_debug(f'handle_event start: {value["name"]}')
             task_info = value["task"]
+            task_info["status"] = ScheduleTaskStatus.WAITING
+            self.tdb.put(key, value)
+            await asyncio.sleep(delay)
+
             task_cls = TaskManager.get(task_info["type"])
             task = task_cls()
+
             task.connect(**task_info)
             res = await task.run(**value)
             log_debug(f'handle_event done: {value["name"]}, res: {str(res)}')
 
+            # TODO: need to refine the results a little further.
             if res:
+                task_info["status"] = ScheduleTaskStatus.DONE
+                task_info["iteration"] += 1
+                task_info["lastRun"] = datetime.now().strftime("%Y/%m/%dT%H:%M:%S")
+                self.tdb.put(key, value)
                 # put the next schedule
                 self.register_next(value)
             else:
-                # increase the retry count
-                task_info["retry"] += 1
-                self.tdb.put(key, value)
-                # this event will be sent to DLQ if retry count limit is reached to the limit
-                if task_info["retry"] >= ScheduleEventHandler.TASK_RETRY_MAX:
-                    self.tdb.put_to_dlq(key, value)
-                    self.tdb.pop(key)
+                raise Exception(f'got the wrong response of the task({value["name"]})')
 
         except Exception as ex:
             log_error(f"Exception: {ex}")
 
             # increase the retry count
             task_info["retry"] += 1
+            task_info["status"] = ScheduleTaskStatus.RETRY
+            task_info["lastRun"] = datetime.now().strftime("%Y/%m/%dT%H:%M:%S")
             self.tdb.put(key, value)
             # this event will be sent to DLQ if retry count limit is reached to the limit
             if task_info["retry"] >= ScheduleEventHandler.TASK_RETRY_MAX:

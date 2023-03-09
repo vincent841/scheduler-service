@@ -2,9 +2,8 @@ fastapi
 uvicorn[standard]
 httpx
 croniter
-event-scheduler
 lmdb
-requests
 psycopg2
 aiokafka
 sqlalchemy
+dataclasses-json

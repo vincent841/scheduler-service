@@ -15,8 +15,8 @@ class TaskRest(Task):
     def __init__(self):
         self.client = httpx.AsyncClient()
         self.host = ""
-        self.method = ""
         self.headers = dict()
+        self.data = dict()
 
     def get_name(self):
         return "rest"
@@ -32,6 +32,7 @@ class TaskRest(Task):
             raise ex
 
     async def run(self, **kargs):
+        result = False
         try:
             # like {"Accept": "application/json", "Content-Type": "application/json"}
             headers = self.headers or {}
@@ -39,16 +40,13 @@ class TaskRest(Task):
             res = await self.client.post(
                 self.host, headers=headers, data=data, timeout=600
             )
-            log_info(f"result: {res}")
+            log_debug(f"result: {res.status_code}")
+            result = True if res.status_code == 200 else False
 
         except Exception as ex:
             log_error("Exception: ", ex)
-            res = None
-            raise ex
-        finally:
-            pass
 
-        return res
+        return result
 
 
 TaskManager.register("rest", TaskRest)

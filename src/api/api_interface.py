@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from enum import Enum
 
 
 """
@@ -23,17 +22,3 @@ class ScheduleRegistration(BaseModel):
 
 class ScheduleUnregistration(BaseModel):
     name: str
-
-
-"""
-Schedule Event
-
-"""
-
-
-class ScheduleEventType(Enum):
-    CRON = "cron"
-    NOW = "now"
-    DELAY = "delay"
-    DELAY_RECUR = "delay-recur"
-    DATE = "date"
