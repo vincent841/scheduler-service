@@ -72,13 +72,18 @@ python3 -m unittest discover -s test -p "*_test.py"
 
 #### Once
 - now
-- date
-- delay
+  - no specific schedule 
+- date 
+  - iso time format (ex. "20230203T13:33:12") 
+- delay 
+  - unit: seconds (ex. "10") 
 
 
 #### Recurring
 - cron
+  - ex. */1 * * * *
 - delay_recur
+  - unit: every seconds (ex "10")
 
 
 ### Task Type
