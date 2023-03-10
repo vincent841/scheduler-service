@@ -4,7 +4,9 @@ config.yaml
 !config/config.yaml
 .DS_Store
 db/*
+!db
 .vscode/*
+evt_queue
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

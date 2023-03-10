@@ -1,4 +1,5 @@
 import yaml
+import os
 
 
 class Config:
@@ -8,6 +9,9 @@ class Config:
         Config.CONFIG_DATA: dict = {}
         try:
             if config_yaml_file:
+                if not os.path.isfile(config_yaml_file):
+                    config_yaml_file = "../config/config.yaml"
+
                 with open(config_yaml_file) as config_file:
                     Config.CONFIG_DATA = yaml.load(config_file, Loader=yaml.FullLoader)
             elif config_data:
