@@ -96,6 +96,7 @@ class LocalQueue:
         return key_value_list
 
     """
+    DEPRECATED
     schedule events that are already in the past are extracted from the current time,
     but deprecated in this time becasue the polling loop was already vanished.
     """

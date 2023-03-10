@@ -43,7 +43,7 @@ python3 main.py
 
 ```bash
 cd src
-python3 -m unittest discover -s unit_test -p "*_test.py"
+python3 -m unittest discover -s test -p "*_test.py"
 ```
 
 ## Deployment

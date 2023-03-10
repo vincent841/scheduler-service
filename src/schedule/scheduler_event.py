@@ -1,5 +1,5 @@
 """
-TODO: need to create schedule event object
+TODO: need to create schedule event object later
 """
 
 
