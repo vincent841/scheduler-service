@@ -9,4 +9,4 @@
 
 # Local queue storage location
 localqueue:
-  evt_queue: ../db/evt_queue
+  evt_queue: ../evt_queue

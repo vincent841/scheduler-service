@@ -1,5 +1,4 @@
 import json
-from confluent_kafka import Producer
 
 from task.task_mgr import TaskManager
 from task.task_abstract import Task
