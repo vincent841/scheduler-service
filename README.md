@@ -68,6 +68,19 @@ python3 -m unittest discover -s test -p "*_test.py"
 
 ![Scalable Scheduler OpenAPI](./assets/scheduler-service-openapi.png "Scalable Scheduler OpenAPI")
 
+### Schedule Type
+
+#### Once
+- now
+- date
+- delay
+
+
+#### Recurring
+- cron
+- delay_recur
+
+
 ### Task Type
 
 - Rest
@@ -75,7 +88,7 @@ python3 -m unittest discover -s test -p "*_test.py"
 - Redis
 
 
-#### Task Rest Example
+#### Task Rest Example with Cron Schedule
 
 ```json
 {
@@ -93,7 +106,7 @@ python3 -m unittest discover -s test -p "*_test.py"
 }
 ```
 
-#### Task Kafka Example
+#### Task Kafka Example with Now Schedule
 
 ```json
 {
