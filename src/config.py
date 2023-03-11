@@ -28,7 +28,7 @@ class Config:
         return cls.CONFIG_DATA.get(key, None)
 
     @classmethod
-    def masterdb(cls):
+    def db(cls):
         try:
             config_data = cls.CONFIG_DATA.get("db")
             assert (

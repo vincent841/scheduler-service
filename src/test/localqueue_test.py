@@ -1,4 +1,3 @@
-import time
 from unittest import TestCase, main
 
 from localqueue.local_queue import LocalQueue

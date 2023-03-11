@@ -7,3 +7,4 @@ psycopg2
 aiokafka
 sqlalchemy
 dataclasses-json
+SQLAlchemy-Utils

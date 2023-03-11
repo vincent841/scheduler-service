@@ -7,6 +7,8 @@ db/*
 !db
 .vscode/*
 evt_queue
+src/*_test.py
+!src/test/*_test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
