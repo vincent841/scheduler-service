@@ -26,7 +26,7 @@ def initialize_global_database(user_name, user_password, host, port, db_name):
         create_database(engine.url)
         print("db is created")
 
-    import __all_models
+    import db.__all_models
 
     BASE.metadata.create_all(engine)
 

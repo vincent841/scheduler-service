@@ -8,3 +8,4 @@ aiokafka
 sqlalchemy
 dataclasses-json
 SQLAlchemy-Utils
+email-validator

@@ -153,11 +153,14 @@ class ScheduleEventHandler:
 
         return {"name": schedule_event["name"]}
 
-    def list(self):
+    def list(self, input_params: dict):
         list_item = dict()
+
+        dlq = input_params.get("dlq", False)
+
         try:
             # 1. gather all key-value data from the localqueue
-            key_value_events = self.tdb.get_key_value_list()
+            key_value_events = self.tdb.get_key_value_list(dlq)
             for key, value in key_value_events:
                 list_item[key] = value
         except Exception as ex:

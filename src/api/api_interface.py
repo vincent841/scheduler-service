@@ -22,3 +22,7 @@ class ScheduleRegistration(BaseModel):
 
 class ScheduleUnregistration(BaseModel):
     name: str
+
+
+class ScheduleList(BaseModel):
+    dlq: bool

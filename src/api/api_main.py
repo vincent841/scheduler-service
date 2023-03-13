@@ -4,16 +4,18 @@ from api.api_register import api_register
 from api.api_unregister import api_unregister
 from api.api_list import api_list
 
-from api.api_interface import (
-    ScheduleRegistration,
-    ScheduleUnregistration,
-)
+from api.api_interface import ScheduleRegistration, ScheduleUnregistration, ScheduleList
 from schedule.schedule_event_handler import ScheduleEventHandler
 
 
 fast_api = FastAPI(
     title="Scheduler Service API",
     description="This service registers schedule information and manages registered schedules.",
+    contact={
+        "name": "jinwon",
+        "url": "https://www.hatiolab.com",
+        "email": "jinwon@hatiolab.com",
+    },
 )
 
 
@@ -29,24 +31,24 @@ async def shutdown_event():
 
 
 @fast_api.post("/register")
-async def register(input_params: ScheduleRegistration) -> dict:
+async def register(inputs: ScheduleRegistration) -> dict:
     """
     register a schedule event
     """
-    return api_register(input_params.dict())
+    return api_register(inputs.dict())
 
 
 @fast_api.post("/unregister")
-async def unregister(input_params: ScheduleUnregistration) -> dict:
+async def unregister(inputs: ScheduleUnregistration) -> dict:
     """
     unregister a schedule event
     """
-    return api_unregister(input_params.dict())
+    return api_unregister(inputs.dict())
 
 
 @fast_api.post("/list")
-async def list() -> dict:
+async def list(inputs: ScheduleList) -> dict:
     """
     list all registered events
     """
-    return api_list()
+    return api_list(inputs.dict())
