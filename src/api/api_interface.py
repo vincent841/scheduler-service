@@ -38,4 +38,4 @@ class ScheduleUnregistration(BaseModel):
 
 
 class ScheduleList(BaseModel):
-    dlq: bool
+    dlq: bool = False

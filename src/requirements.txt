@@ -5,6 +5,7 @@ croniter
 lmdb
 psycopg2
 aiokafka
+aioredis
 sqlalchemy
 dataclasses-json
 SQLAlchemy-Utils
