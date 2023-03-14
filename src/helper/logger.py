@@ -79,7 +79,7 @@ if __name__ == "__main__":
     cl.error("test")
     cl.critical("test")
 
-    dl = LoggerObject("detector", logging.INFO)
+    dl = LoggerObject("detector", logging.ERROR)
     dl.debug("test")
     dl.info("test")
     dl.warning("test")

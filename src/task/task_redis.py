@@ -11,7 +11,7 @@ class TaskRedis(Task):
     def connect(self, **kargs):
         pass
 
-    async def run(self, **kargs):
+    async def run(self, **kargs) -> bool:
         pass
 
 

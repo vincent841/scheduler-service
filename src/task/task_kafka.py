@@ -19,7 +19,7 @@ class TaskKafka(Task):
     def connect(self, **kargs):
         pass
 
-    async def run(self, **kargs):
+    async def run(self, **kargs) -> bool:
         try:
             task_info = kargs["task"]
             connection = task_info["connection"]

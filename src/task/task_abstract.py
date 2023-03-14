@@ -11,5 +11,5 @@ class Task(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    async def run(self, **kargs):
+    async def run(self, **kargs) -> bool:
         pass

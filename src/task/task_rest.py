@@ -6,9 +6,12 @@ from task.task_abstract import Task
 
 from helper.logger import Logger
 
-log_info = Logger.get("tkrest", Logger.Level.INFO, sys.stdout).info
-log_debug = Logger.get("tkrest", Logger.Level.DEBUG, sys.stdout).debug
-log_error = Logger.get("tkrest", Logger.Level.ERROR, sys.stderr).error
+log_message = Logger.get("tkrest", Logger.Level.INFO, sys.stdout)
+
+log_debug = log_message.debug
+log_info = log_message.info
+log_warning = log_message.warning
+log_error = log_message.error
 
 
 class TaskRest(Task):
@@ -31,7 +34,7 @@ class TaskRest(Task):
             log_error(f"Exception: {ex}")
             raise ex
 
-    async def run(self, **kargs):
+    async def run(self, **kargs) -> bool:
         result = False
         try:
             # like {"Accept": "application/json", "Content-Type": "application/json"}

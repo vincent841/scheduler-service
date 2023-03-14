@@ -15,7 +15,7 @@ class TaskSlack(Task):
     def connect(self, **kargs):
         pass
 
-    async def run(self, **kargs):
+    async def run(self, **kargs) -> bool:
         try:
             slack_url = kargs["url"]
             slack_msg = dict()

@@ -5,8 +5,12 @@ from schedule.schedule_event_handler import ScheduleEventHandler
 import sys
 from helper.logger import Logger
 
-log_info = Logger.get("apiunr", Logger.Level.INFO, sys.stdout).info
-log_error = Logger.get("apiunr", Logger.Level.ERROR, sys.stderr).error
+log_message = Logger.get("apiunr", Logger.Level.INFO, sys.stdout)
+
+log_debug = log_message.debug
+log_info = log_message.info
+log_warning = log_message.warning
+log_error = log_message.error
 
 
 def api_unregister(unregister_data):
