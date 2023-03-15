@@ -11,7 +11,7 @@ This service triggers events according to the schedule information specified by 
 - Asynchronous schedule event handling
 - Horizontal scalability according to service load
 - Schedule recovery when service restarts
-- Schedule Event History(Comming soon)
+- Schedule Event History
 
 
 ## Setup
@@ -73,24 +73,115 @@ python3 -m unittest discover -s test -p "*_test.py"
 #### Once
 - now
   - no specific schedule 
+  
+  ```json
+   {
+  "name": "test01",
+  "type": "now",
+  "schedule": "",
+  "task": {
+    ...
+  }
+  ```
+
 - date 
-  - iso time format (ex. "20230203T13:33:12") 
+  - iso time format (ex. "2023-02-03T13:33:12") 
+  
+  ```json
+   {
+  "name": "test02",
+  "type": "date",
+  "schedule": "2023-02-03T13:33:12",
+  "task": {
+    ...
+  }
+  ```
+
 - delay 
   - unit: seconds (ex. "10") 
+
+  ```json
+   {
+  "name": "test03",
+  "type": "delay",
+  "schedule": "30",
+  "task": {
+    ...
+  }
+  ```
 
 
 #### Recurring
 - cron
   - ex. */1 * * * *
-- delay_recur
+
+  ```json
+   {
+  "name": "test04",
+  "type": "cron",
+  "schedule": "*/1 * * * *",
+  "task": {
+    ...
+  }
+  ```
+
+- delay-recur
   - unit: every seconds (ex "10")
+
+  ```json
+   {
+  "name": "test05",
+  "type": "delay-recur",
+  "schedule": "60",
+  "task": {
+    ...
+  }
+  ```
 
 
 ### Task Type
 
 - Rest
+
+  ```json
+   {
+  "name": "test06",
+  "type": "cron",
+  "schedule": "*/1 * * * *",
+  "task": {
+    "type": "rest",
+    "connection": {"host": "http://localhost:3000/api/unstable/run-scenario/test-scenario-1", "headers": {"Content-Type": "application/json", "accept": "*/*"}},
+    "data": {"instanceName": "test-scenario-1", "variables": {}}
+  }
+  ```
+
 - Kafka
+
+  ```json
+   {
+  "name": "test07",
+  "type": "cron",
+  "schedule": "*/1 * * * *",
+  "task": {
+    "type": "kafka",
+    "connection": {"host": "localhost:9092", "topic": "example-topic"},
+    "data": { ... }
+  }
+  ```
+
 - Redis
+
+  ```json
+   {
+  "name": "test08",
+  "type": "cron",
+  "schedule": "*/1 * * * *",
+  "task": {
+    "type": "redis",
+    "connection": {"host": "redis://localhost", "topic": "example-topic"},
+    "data": { ... }
+  }
+  ```
 
 
 #### Task Rest Example with Cron Schedule

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DOCKER_VERSION=$(python src/version.py)
-echo "Docker Version: ${DOCKER_VERSION}"
-docker push hatiolab/schevt-mgr:${DOCKER_VERSION} && docker push hatiolab/schevt-mgr:latest
+APP_VERSION=$(python src/version.py)
+echo "Application Version: ${APP_VERSION}"
+docker push hatiolab/schevt-mgr:${APP_VERSION} && docker push hatiolab/schevt-mgr:latest
 
