@@ -12,3 +12,4 @@ class ScheduleTaskStatus:
     WAITING = "waiting"
     RETRY = "retry"
     DONE = "done"
+    FAILED = "failed"

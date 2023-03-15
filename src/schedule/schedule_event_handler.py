@@ -161,10 +161,11 @@ class ScheduleEventHandler:
     def list(self, input_params: dict):
         list_item = dict()
 
+        # 1. fetch the dlq flag, True or False
         dlq = input_params.get("dlq", False)
 
         try:
-            # 1. gather all key-value data from the localqueue
+            # 2. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list(dlq)
             for key, value in key_value_events:
                 list_item[key] = value
@@ -234,14 +235,18 @@ class ScheduleEventHandler:
     async def handle_event(self, key, schedule_event, delay):
         try:
             log_info(f'handle_event start: {schedule_event["name"]}')
+
+            # 1. put it into the qeueue with the status 'waiting'
             task_info = schedule_event["task"]
             task_info["status"] = ScheduleTaskStatus.WAITING
             self.tdb.put(key, schedule_event)
 
+            # 2. sleep with the input delay
             log_debug(f'*** before sleep({schedule_event["name"]})')
             await asyncio.sleep(delay)
             log_debug(f'*** after sleep({schedule_event["name"]})')
 
+            # 3. run a task based on task parameters
             task_cls = TaskManager.get(task_info["type"])
             task = task_cls()
 
@@ -249,8 +254,9 @@ class ScheduleEventHandler:
             res = await task.run(**schedule_event)
             log_debug(f'handle_event done: {schedule_event["name"]}, res: {str(res)}')
 
-            # TODO: need to refine the results a little further.
+            # 4. handle the result of this task run
             if res:
+                # 4.1 put it into the queue with status 'Done'
                 task_info["status"] = ScheduleTaskStatus.DONE
                 task_info["iteration"] += 1
                 task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -271,27 +277,40 @@ class ScheduleEventHandler:
             log_error(f"Exception: {ex}")
 
             log_debug(f'failed_policy: {task_info.get("failed_policy")}')
+
+            # 0. set the lastRun
+            task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+            # 1. in case that 'failed_policy' == "retry"
             if task_info.get("failed_policy", "ignore") == "retry":
-                # increase the retry count
+                # 1.1 increase the retry count
                 task_info["retry_count"] += 1
                 task_info["status"] = ScheduleTaskStatus.RETRY
                 task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-                # this event will be sent to DLQ if retry count limit is reached to the limit
-
+                # 1.2 this event will be sent to DLQ if retry count limit is reached to the limit
                 if task_info["retry_count"] >= task_info.get(
                     "max_retry_count", ScheduleEventHandler.TASK_RETRY_MAX
                 ):
                     log_info(f'reached retry max count... {schedule_event["name"]}')
+
+                    # 1.2.1 pop this schedule from the standard queue and put it into DLQ
+                    task_info["status"] = ScheduleTaskStatus.FAILED
                     self.tdb.put(key, schedule_event, dlq=True)
                     self.tdb.pop(key)
+
+                    # 1.2.2 update the schedule event dict and cancel it
                     future_event = self.running_schedules.pop(
                         schedule_event["name"], None
                     )
                     future_event.cancel() if future_event else None
+                # 1.3 retry one more..
                 else:
+                    # 1.3.1 put it into the queue with the changed status
+                    task_info["status"] = ScheduleTaskStatus.RETRY
                     self.tdb.put(key, schedule_event)
 
+                    # 1.3.2 run it again and update the schedule evnet dict.
                     handle_event_future = asyncio.run_coroutine_threadsafe(
                         self.handle_event(
                             schedule_event["name"], schedule_event.copy(), delay
@@ -299,9 +318,12 @@ class ScheduleEventHandler:
                         asyncio.get_event_loop(),
                     )
                     self.running_schedules[schedule_event["name"]] = handle_event_future
-
-            elif task_info.get("failed_policy", "ignore") == "ignore":
+            # 2. in case that 'failed_policy' == "ignore"
+            else:
+                # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
                 self.save_schevt_to_db("failed", schedule_event)
                 self.tdb.pop(key)
                 future_event = self.running_schedules.pop(schedule_event["name"], None)
+
+                # 2.2 cancle the current event
                 future_event.cancel() if future_event else None
