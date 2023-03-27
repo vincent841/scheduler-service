@@ -12,7 +12,7 @@ fast_api = FastAPI(
     title="Scheduler Service API",
     description="This service registers schedule information and manages registered schedules.",
     contact={
-        "name": "jinwon",
+        "name": "hatiolab",
         "url": "https://www.hatiolab.com",
         "email": "jinwon@hatiolab.com",
     },

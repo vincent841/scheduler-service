@@ -10,3 +10,4 @@ sqlalchemy
 dataclasses-json
 SQLAlchemy-Utils
 email-validator
+strawberry-graphql[fastapi]

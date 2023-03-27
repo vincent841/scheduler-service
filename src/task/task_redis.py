@@ -1,4 +1,4 @@
-import asyncio
+import json
 import aioredis
 
 from task.task_mgr import TaskManager
@@ -14,6 +14,13 @@ log_warning = log_message.warning
 log_error = log_message.error
 
 
+"""
+
+Not Tested Yet....
+
+"""
+
+
 class TaskRedis(Task):
     def get_name(self):
         return "redis"
@@ -26,7 +33,13 @@ class TaskRedis(Task):
             task_info = kargs["task"]
             connection = task_info["connection"]
             topic = task_info["topic"]
-            data = task_info["data"]
+
+            # assumet that self.data is originated from 'JSON' but send it as it is if its type is str.
+            data = (
+                json.dumps(task_info["data"])
+                if type(task_info["data"]) is dict
+                else str(task_info["data"])
+            ).encode()
 
             log_debug(f"connection: {connection}")
             redis_cli = aioredis.from_url(connection["host"])

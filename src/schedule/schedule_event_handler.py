@@ -135,31 +135,38 @@ class ScheduleEventHandler:
         except Exception as ex:
             raise ex
 
-    def unregister(self, schedule_event: dict):
+    def unregister(self, schedule_name: str):
         try:
-            assert type(schedule_event) is dict
+            assert type(schedule_name) is str
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             key_value_events = self.tdb.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
-            for key, registered_event in key_value_events:
-                # 2. pop the event from localqueue if found
-                if key == schedule_event["name"]:
-                    self.tdb.pop(key)
-                    self.save_schevt_to_db("unregister", registered_event)
-                    # 3. remove it from running_schedules and cancel it
-                    future_event = self.running_schedules.pop(
-                        schedule_event["name"], None
-                    )
-                    future_event.cancel()
+
+            name = ""
+            resp_id = ""
+            if len(key_value_events):
+                for key, registered_event in key_value_events:
+                    # 2. pop the event from localqueue if found
+                    name = registered_event["name"]
+                    resp_id = registered_event["resp_id"]
+
+                    if key == schedule_name:
+                        self.tdb.pop(key)
+                        self.save_schevt_to_db("unregister", registered_event)
+                        # 3. remove it from running_schedules and cancel it
+                        future_event = self.running_schedules.pop(schedule_name, None)
+                        future_event.cancel()
+
+                        log_info(f"handle_event unregistered: {name}({resp_id})")
 
         except Exception as ex:
             raise ex
 
-        return registered_event
+        return {"name": name, "resp_id": resp_id}
 
     def list(self, input_params: dict):
-        list_item = dict()
+        list_item = list()
 
         # 1. fetch the dlq flag, True or False
         dlq = input_params.get("dlq", False)
@@ -168,7 +175,7 @@ class ScheduleEventHandler:
             # 2. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list(dlq)
             for key, value in key_value_events:
-                list_item[key] = value
+                list_item.append(value)
         except Exception as ex:
             raise ex
 
@@ -187,7 +194,8 @@ class ScheduleEventHandler:
 
                 # 3. reset the retry count
                 input_data_task["retry_count"] = 0
-                # 4. set next timestamp
+
+                # 4. set the next timestamp
                 input_data_task["next"] = next_time
 
                 # 5. set the evetn to the localqueue

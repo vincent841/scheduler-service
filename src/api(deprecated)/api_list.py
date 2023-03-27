@@ -1,4 +1,3 @@
-import json
 import traceback
 
 from schedule.schedule_event_handler import ScheduleEventHandler

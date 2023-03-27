@@ -1,3 +1,4 @@
+import json
 import sys
 import httpx
 
@@ -29,7 +30,7 @@ class TaskRest(Task):
             connection_info = kargs["connection"]
             self.host = connection_info["host"]
             self.headers = connection_info.get("headers", {})
-            self.data = connection_info.get("data", {})
+            self.data = kargs.get("data", {})
         except Exception as ex:
             log_error(f"Exception: {ex}")
             raise ex
@@ -39,7 +40,7 @@ class TaskRest(Task):
         try:
             # like {"Accept": "application/json", "Content-Type": "application/json"}
             headers = self.headers or {}
-            data = self.data or {}
+            data = json.dumps(self.data)
             res = await self.client.post(
                 self.host, headers=headers, data=data, timeout=600
             )
@@ -47,7 +48,9 @@ class TaskRest(Task):
             result = True if res.status_code == 200 else False
 
         except Exception as ex:
-            log_error("Exception: ", ex)
+            log_error(
+                f"Exception: {ex}",
+            )
 
         return result
 

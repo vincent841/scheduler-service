@@ -17,8 +17,17 @@ if __name__ == "__main__":
         port = 9902
 
     # run fastapi server using uvicorn
+    # uvicorn.run(
+    #     "api.api_main:fast_api",
+    #     host="0.0.0.0",
+    #     port=port,
+    #     log_level="info",
+    #     reload=True,
+    # )
+
+    # run graphql server using uvicorn
     uvicorn.run(
-        "api.api_main:fast_api",
+        "gql.gql_main:fast_api",
         host="0.0.0.0",
         port=port,
         log_level="info",
