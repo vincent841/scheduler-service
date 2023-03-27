@@ -137,7 +137,8 @@ class ScheduleEventHandler:
 
     def unregister(self, schedule_name: str):
         try:
-            assert type(schedule_name) is str
+            if type(schedule_name) is str or schedule_name != "":
+                raise Exception(f"schedule_name is not available.. {schedule_name}")
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             key_value_events = self.tdb.get_key_value_list()
