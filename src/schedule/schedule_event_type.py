@@ -1,5 +1,30 @@
+from enum import Enum
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from datetime import datetime
 from croniter import croniter
+
+
+class ScheduleTaskFailurePolicy(str, Enum):
+    IGNORE = "ignore"
+    RETRY = "retry"
+    RETRY_DLQ = "retry_dlq"
+
+
+class ScheduleTaskStatus:
+    IDLE = "idle"
+    WAITING = "waiting"
+    RETRY = "retry"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class ScheduleType:
+    IDLE = "idle"
+    WAITING = "waiting"
+    RETRY = "retry"
+    DONE = "done"
+    FAILED = "failed"
 
 
 class ScheduleEventType:

@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 
-from api.api_register import api_register
-from api.api_unregister import api_unregister
-from api.api_list import api_list
+from api.api_method import api_register, api_unregister, api_list
 
 from api.api_interface import ScheduleRegistration, ScheduleUnregistration, ScheduleList
 from schedule.schedule_event_handler import ScheduleEventHandler

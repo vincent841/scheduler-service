@@ -99,6 +99,7 @@ class ScheduleTask:
     iteration: Optional[int] = 0
     last_run: Optional[str] = ""
     retry_count: Optional[int] = 0
+    next: Optional[int] = 0
 
 
 @dataclass_json

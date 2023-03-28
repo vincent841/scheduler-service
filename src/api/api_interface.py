@@ -15,6 +15,12 @@ class ScheduleTaskFailurePolicy(str, Enum):
     RETRY_DLQ = "retry_dlq"
 
 
+class ScheduleClient(BaseModel):
+    name: str
+    group: str
+    key: str
+
+
 class ScheduleTask(BaseModel):
     type: str
     connection: dict
@@ -27,14 +33,19 @@ class ScheduleTask(BaseModel):
 
 
 class ScheduleRegistration(BaseModel):
-    name: str
+    client: ScheduleClient
     type: str
     schedule: str
     task: ScheduleTask
 
 
+class ScheduleRegistrationResult(BaseModel):
+    client: ScheduleClient
+    resp_id: str
+
+
 class ScheduleUnregistration(BaseModel):
-    name: str
+    resp_id: str
 
 
 class ScheduleList(BaseModel):

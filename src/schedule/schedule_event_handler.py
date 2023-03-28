@@ -5,8 +5,7 @@ from datetime import datetime
 
 from config import Config
 from localqueue.local_queue import LocalQueue
-from schedule.schedule_event_type import ScheduleEventType
-from schedule.scheduler_event import ScheduleTaskStatus
+from schedule.schedule_event_type import ScheduleEventType, ScheduleTaskStatus
 from task.task_mgr import TaskManager
 from task.task_import import TASK_ACTIVE_MODULE_LIST
 
@@ -73,7 +72,6 @@ class ScheduleEventHandler:
 
                 schedule_event = value
                 if schedule_event["instance"] == self.instance_name:
-                    schedule_event["name"] = key
                     log_info(f"reigstering {schedule_event}")
                     self.register(schedule_event)
 
@@ -83,15 +81,17 @@ class ScheduleEventHandler:
 
     def register(self, schedule_event: dict):
         try:
+            client_info = schedule_event.get("client")
             assert (
-                schedule_event["name"]
+                client_info["key"]
                 and schedule_event["type"]
+                and schedule_event["schedule"]
                 and schedule_event["task"]
             )
 
             # 1. check if name is duplicated.
-            if schedule_event["name"] in self.running_schedules:
-                raise Exception("duplicated name found")
+            if client_info["key"] in self.running_schedules:
+                raise Exception("duplicated key found")
 
             # 1.1. set the insance name
             schedule_event["instance"] = self.instance_name
@@ -116,54 +116,60 @@ class ScheduleEventHandler:
             input_data_task["lastRun"] = None
 
             # 5. store the updated schedule event
-            self.tdb.put(schedule_event["name"], schedule_event)
+            self.tdb.put(client_info["key"], schedule_event)
             self.save_schevt_to_db("register", schedule_event)
 
             # 6. start a schedule event task
             handle_event_future = asyncio.run_coroutine_threadsafe(
-                self.handle_event(schedule_event["name"], schedule_event.copy(), delay),
+                self.handle_event(client_info["key"], schedule_event.copy(), delay),
                 asyncio.get_event_loop(),
             )
 
             # 7. add the name of the current schedlue event to event_name list.
             #  to check the duplicated schedule name later
-            self.running_schedules[schedule_event["name"]] = handle_event_future
+            self.running_schedules[client_info["key"]] = handle_event_future
 
             # 8. return the result with the response id
-            return {"name": schedule_event["name"], "resp_id": str(resp_id)}
+            return {
+                "client": {
+                    "name": client_info["name"],
+                    "key": client_info["key"],
+                    "group": client_info["group"],
+                },
+                "resp_id": str(resp_id),
+            }
         except Exception as ex:
             raise ex
 
-    def unregister(self, schedule_name: str):
+    def unregister(self, input_resp_id: str):
         try:
-            if type(schedule_name) is str or schedule_name != "":
-                raise Exception(f"schedule_name is not available.. {schedule_name}")
+            if type(input_resp_id) is not str or input_resp_id == "":
+                raise Exception(f"input_resp_id is not available.. {input_resp_id}")
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             key_value_events = self.tdb.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
 
-            name = ""
-            resp_id = ""
+            found_count = 0
             if len(key_value_events):
                 for key, registered_event in key_value_events:
                     # 2. pop the event from localqueue if found
-                    name = registered_event["name"]
                     resp_id = registered_event["resp_id"]
 
-                    if key == schedule_name:
+                    if resp_id == input_resp_id:
                         self.tdb.pop(key)
                         self.save_schevt_to_db("unregister", registered_event)
                         # 3. remove it from running_schedules and cancel it
-                        future_event = self.running_schedules.pop(schedule_name, None)
+                        future_event = self.running_schedules.pop(key, None)
                         future_event.cancel()
+                        found_count += 1
 
-                        log_info(f"handle_event unregistered: {name}({resp_id})")
+                        log_info(f"handle_event unregistered: {key}({resp_id})")
 
         except Exception as ex:
             raise ex
 
-        return {"name": name, "resp_id": resp_id}
+        return {"count": found_count}
 
     def list(self, input_params: dict):
         list_item = list()
@@ -183,6 +189,7 @@ class ScheduleEventHandler:
 
     def register_next(self, schedule_event):
         try:
+            client_info = schedule_event["client"]
             # 1. check if scheluer event type is
             if ScheduleEventType.is_recurring(schedule_event["type"]):
                 # 2. calculate the next timestamp and delay based on schedule_event
@@ -199,26 +206,25 @@ class ScheduleEventHandler:
                 input_data_task["next"] = next_time
 
                 # 5. set the evetn to the localqueue
-                self.tdb.put(schedule_event["name"], schedule_event)
+                self.tdb.put(client_info["key"], schedule_event)
                 self.save_schevt_to_db("register", schedule_event)
 
                 handle_event_future = asyncio.run_coroutine_threadsafe(
-                    self.handle_event(
-                        schedule_event["name"], schedule_event.copy(), delay
-                    ),
+                    self.handle_event(client_info["key"], schedule_event.copy(), delay),
                     asyncio.get_event_loop(),
                 )
-                self.running_schedules[schedule_event["name"]] = handle_event_future
+                self.running_schedules[client_info["key"]] = handle_event_future
             else:
                 # pop this schedule event if it is not ono of recurrring schedule types.
-                self.tdb.pop(schedule_event["name"])
-                self.running_schedules.pop(schedule_event["name"], None)
+                self.tdb.pop(client_info["key"])
+                self.running_schedules.pop(client_info["key"], None)
         except Exception as ex:
             raise ex
 
     def save_schevt_to_db(self, event, schedule_event):
         try:
             task_info = schedule_event.get("task", {})
+            client_info = schedule_event.get("client", {})
             if task_info:
                 hischeck = task_info.get("history_check", False)
                 if hischeck:
@@ -227,7 +233,9 @@ class ScheduleEventHandler:
                     with get_session() as db_session:
                         schevt_history = ScheduleEventHistory(
                             event=event,
-                            name=schedule_event.get("name"),
+                            name=client_info.get("name"),
+                            key=client_info.get("key"),
+                            group=client_info.get("group"),
                             type=schedule_event.get("type"),
                             schedule=schedule_event.get("schedule"),
                             task_type=task_info.get("type"),
@@ -242,7 +250,7 @@ class ScheduleEventHandler:
 
     async def handle_event(self, key, schedule_event, delay):
         try:
-            log_info(f'handle_event start: {schedule_event["name"]}')
+            log_info(f"handle_event start: {key}")
 
             # 1. put it into the qeueue with the status 'waiting'
             task_info = schedule_event["task"]
@@ -250,9 +258,10 @@ class ScheduleEventHandler:
             self.tdb.put(key, schedule_event)
 
             # 2. sleep with the input delay
-            log_debug(f'*** before sleep({schedule_event["name"]})')
+            client_info = schedule_event["client"]
+            log_debug(f"*** before sleep({key})")
             await asyncio.sleep(delay)
-            log_debug(f'*** after sleep({schedule_event["name"]})')
+            log_debug(f"*** after sleep({key})")
 
             # 3. run a task based on task parameters
             task_cls = TaskManager.get(task_info["type"])
@@ -260,7 +269,7 @@ class ScheduleEventHandler:
 
             task.connect(**task_info)
             res = await task.run(**schedule_event)
-            log_debug(f'handle_event done: {schedule_event["name"]}, res: {str(res)}')
+            log_debug(f"handle_event done: {key}, res: {str(res)}")
 
             # 4. handle the result of this task run
             if res:
@@ -274,12 +283,9 @@ class ScheduleEventHandler:
                 # put the next schedule
                 self.register_next(schedule_event)
             else:
-                log_debug(
-                    f'got the wrong response of the task({schedule_event["name"]})'
-                )
-                raise Exception(
-                    f'got the wrong response of the task({schedule_event["name"]})'
-                )
+                task_info["status"] = ScheduleTaskStatus.FAILED
+                log_debug(f"got the wrong response of the task({key})")
+                raise Exception(f"got the wrong response of the task({key})")
 
         except Exception as ex:
             log_error(f"Exception: {ex}")
@@ -300,7 +306,7 @@ class ScheduleEventHandler:
                 if task_info["retry_count"] >= task_info.get(
                     "max_retry_count", ScheduleEventHandler.TASK_RETRY_MAX
                 ):
-                    log_info(f'reached retry max count... {schedule_event["name"]}')
+                    log_info(f"reached retry max count... {key}")
 
                     # 1.2.1 pop this schedule from the standard queue and put it into DLQ
                     task_info["status"] = ScheduleTaskStatus.FAILED
@@ -308,9 +314,7 @@ class ScheduleEventHandler:
                     self.tdb.pop(key)
 
                     # 1.2.2 update the schedule event dict and cancel it
-                    future_event = self.running_schedules.pop(
-                        schedule_event["name"], None
-                    )
+                    future_event = self.running_schedules.pop(key, None)
                     future_event.cancel() if future_event else None
                 # 1.3 retry one more..
                 else:
@@ -320,18 +324,16 @@ class ScheduleEventHandler:
 
                     # 1.3.2 run it again and update the schedule evnet dict.
                     handle_event_future = asyncio.run_coroutine_threadsafe(
-                        self.handle_event(
-                            schedule_event["name"], schedule_event.copy(), delay
-                        ),
+                        self.handle_event(key, schedule_event.copy(), delay),
                         asyncio.get_event_loop(),
                     )
-                    self.running_schedules[schedule_event["name"]] = handle_event_future
+                    self.running_schedules[key] = handle_event_future
             # 2. in case that 'failed_policy' == "ignore"
             else:
                 # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
                 self.save_schevt_to_db("failed", schedule_event)
                 self.tdb.pop(key)
-                future_event = self.running_schedules.pop(schedule_event["name"], None)
+                future_event = self.running_schedules.pop(key, None)
 
                 # 2.2 cancle the current event
                 future_event.cancel() if future_event else None

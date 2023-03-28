@@ -14,6 +14,8 @@ class ScheduleEventHistory(BASE):
     id = Column(Integer, primary_key=True)
     event = Column(String)
     name = Column(String)
+    key = Column(String)
+    group = Column(String)
     type = Column(String)
     schedule = Column(String)
     task_type = Column(String)
