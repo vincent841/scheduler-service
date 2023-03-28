@@ -67,7 +67,6 @@ class ScheduleEventHandler:
                     "cannot find environment variable POD_NAME, so assume that th only one instance is running."
                 )
 
-            #
             key_value_events = self.tdb.get_key_value_list()
             for key, value in key_value_events:
                 assert (type(key) is str) and (type(value) is dict)

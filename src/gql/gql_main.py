@@ -4,7 +4,8 @@ from strawberry.fastapi import GraphQLRouter
 
 from schedule.schedule_event_handler import ScheduleEventHandler
 
-from gql.gql_types import Query, Mutation
+from gql.gql_mutation import Mutation
+from gql.gql_query import Query
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
