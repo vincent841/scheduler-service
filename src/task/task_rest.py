@@ -1,3 +1,4 @@
+import jwt
 import json
 import sys
 import httpx
@@ -39,7 +40,13 @@ class TaskRest(Task):
         result = False
         try:
             # like {"Accept": "application/json", "Content-Type": "application/json"}
+            client_info = kargs["client"]
+
+            # add some the specific key-value in headers
             headers = self.headers or {}
+            headers["clientKey"] = client_info["key"]
+            headers["token"] = jwt.encode(kargs, kargs["resp_id"], algorithm="HS256")
+
             data = json.dumps(self.data)
             res = await self.client.post(
                 self.host, headers=headers, data=data, timeout=600

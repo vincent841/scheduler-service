@@ -8,7 +8,6 @@ from sqlalchemy.ext.mutable import MutableDict
 
 
 class ScheduleEventHistory(BASE):
-
     __tablename__ = "schedule_event_history"
 
     id = Column(Integer, primary_key=True)

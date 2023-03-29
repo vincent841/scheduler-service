@@ -79,6 +79,18 @@ class ScheduleEventHandler:
         except Exception as ex:
             log_error(f"Initializaiton Error: {ex}")
 
+    def is_connection_available(self, type: str, connection_info: dict) -> bool:
+        if type == "rest":
+            if not connection_info.get("host", ""):
+                raise Exception(f"{type} type must have 'host'.")
+        elif type == "kafka" or type == "redis":
+            if not connection_info.get("topic", "") or not connection_info.get(
+                "data", ""
+            ):
+                raise Exception(f"{type} type must have 'topic' and 'data'")
+        else:
+            pass
+
     def register(self, schedule_event: dict):
         try:
             client_info = schedule_event.get("client")
@@ -108,7 +120,10 @@ class ScheduleEventHandler:
             # 4.1 check if task type is available
             if not input_data_task["type"] in TaskManager.all():
                 raise Exception("task type unavailable.")
-            # 4.2 update some additional data like next and retry
+            # 4.2 check if task connection is available
+            input_task_connection = input_data_task["connection"]
+            self.is_connection_available(input_data_task["type"], input_task_connection)
+            # 4.3 update some additional data like next and retry
             input_data_task["retry_count"] = 0
             input_data_task["next"] = next_time
             input_data_task["status"] = ScheduleTaskStatus.IDLE
@@ -138,6 +153,43 @@ class ScheduleEventHandler:
                 },
                 "resp_id": str(resp_id),
             }
+        except Exception as ex:
+            raise ex
+
+    def update(self, schedule_event: dict):
+        try:
+            client_info = schedule_event.get("client")
+            assert (
+                client_info["key"]
+                and schedule_event["type"]
+                and schedule_event["schedule"]
+                and schedule_event["task"]
+            )
+
+            # 0. get resp_id
+            client_info = schedule_event["client"]
+            input_key = client_info["key"]
+
+            # 1. check if this event is in queue based on key
+            key_list = self.tdb.get_key_list()
+            if (
+                (not input_key in self.running_schedules)
+                or (len(key_list) == 0)
+                or (not input_key in key_list)
+            ):
+                raise Exception("this schedule is not existied in the schedule queue")
+
+            # 2. delete the previous event and cancel the current event
+            self.tdb.pop(input_key)
+            future_event = self.running_schedules.pop(input_key, None)
+            future_event.cancel() if future_event else None
+
+            # 3. update the record for the current schedule event
+            self.save_schevt_to_db("deleted", schedule_event)
+
+            # 4. register the updated event
+            return self.register(schedule_event)
+
         except Exception as ex:
             raise ex
 
@@ -176,11 +228,18 @@ class ScheduleEventHandler:
 
         # 1. fetch the dlq flag, True or False
         dlq = input_params.get("dlq", False)
+        client_name = input_params.get("name", "")
+        client_group = input_params.get("group", "")
 
         try:
             # 2. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list(dlq)
-            for key, value in key_value_events:
+            for _, value in key_value_events:
+                client_info = value["client"]
+                if client_name and client_name != client_info["name"]:
+                    continue
+                if client_group and client_group != client_info["group"]:
+                    continue
                 list_item.append(value)
         except Exception as ex:
             raise ex
@@ -248,6 +307,33 @@ class ScheduleEventHandler:
         except Exception as ex:
             log_error(f"can't save event to db - {ex}")
 
+    def reset(self):
+        try:
+            reset_result = dict()
+
+            # reset the schedule queue
+            count = 0
+            key_value_list = self.tdb.get_key_value_list(False)
+            for key, value in key_value_list:
+                self.save_schevt_to_db("deleted", value)
+                self.tdb.pop(key, False)
+                future_event = self.running_schedules.pop(key, None)
+                future_event.cancel() if future_event else None
+                count += 1
+            reset_result["schevt"] = count
+
+            # reset the dead letter queue(dlq)
+            key_list = self.tdb.get_key_list(True)
+            count = 0
+            for key in key_list:
+                self.tdb.pop(key, True)
+                count += 1
+            reset_result["dlq"] = count
+        except Exception as ex:
+            raise ex
+
+        return reset_result
+
     async def handle_event(self, key, schedule_event, delay):
         try:
             log_info(f"handle_event start: {key}")
@@ -296,7 +382,10 @@ class ScheduleEventHandler:
             task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
             # 1. in case that 'failed_policy' == "retry"
-            if task_info.get("failed_policy", "ignore") == "retry":
+            if (
+                task_info.get("failed_policy", "ignore") == "retry"
+                or task_info.get("failed_policy", "ignore") == "retry_dlq"
+            ):
                 # 1.1 increase the retry count
                 task_info["retry_count"] += 1
                 task_info["status"] = ScheduleTaskStatus.RETRY
@@ -310,7 +399,8 @@ class ScheduleEventHandler:
 
                     # 1.2.1 pop this schedule from the standard queue and put it into DLQ
                     task_info["status"] = ScheduleTaskStatus.FAILED
-                    self.tdb.put(key, schedule_event, dlq=True)
+                    if task_info.get("failed_policy", "ignore") == "retry_dlq":
+                        self.tdb.put(key, schedule_event, dlq=True)
                     self.tdb.pop(key)
 
                     # 1.2.2 update the schedule event dict and cancel it

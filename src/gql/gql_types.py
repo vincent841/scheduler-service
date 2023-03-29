@@ -67,6 +67,19 @@ class RegisteredEvent:
     resp_id: str
 
 
+@dataclass_json
+@strawberry.type
+class UnregisterResult:
+    count: int
+
+
+@dataclass_json
+@strawberry.type
+class ResetResult:
+    schevt: int
+    dlq: int
+
+
 @strawberry.enum
 class ScheduleTaskStatus(Enum):
     IDLE = "idle"
@@ -113,5 +126,7 @@ class ScheduleEvent:
 
 @dataclass_json
 @strawberry.input
-class QueueTypeInput:
+class ListInput:
     dlq: bool
+    name: str
+    group: str

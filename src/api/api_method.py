@@ -14,32 +14,52 @@ log_warning = log_message.warning
 log_error = log_message.error
 
 
-def api_register(req_schedule):
-    log_info(f"request register data: {req_schedule}")
+def api_register(input_req):
+    log_info(f"request registration: {input_req}")
     try:
         schedule_register = ScheduleEventHandler()
-        return schedule_register.register(req_schedule)
+        return schedule_register.register(input_req)
     except Exception as ex:
         log_error(traceback.format_exc())
-        return {"error": f'{req_schedule["client"]}: {ex}'}
+        return {"error": f'{input_req["client"]}: {ex}'}
 
 
-def api_unregister(unregister_data):
-    log_info(f"request unregistration: {unregister_data}")
+def api_unregister(input_req):
+    log_info(f"request unregistration: {input_req}")
     try:
         schedule_register = ScheduleEventHandler()
-        resp_id = unregister_data.get("resp_id", "")
+        resp_id = input_req.get("resp_id", "")
         return schedule_register.unregister(resp_id)
     except Exception as ex:
         log_error(traceback.format_exc())
-        return {"error": f'{unregister_data["resp_id"]}: {ex}'}
+        return {"error": f'{input_req["resp_id"]}: {ex}'}
 
 
-def api_list(input_params):
-    log_info(f"request list data (input_params = {input_params})")
+def api_update(input_req):
+    log_info(f"request update: {input_req}")
+    try:
+        schedule_register = ScheduleEventHandler()
+        return schedule_register.update(input_req)
+    except Exception as ex:
+        log_error(traceback.format_exc())
+        return {"error": f'{input_req["resp_id"]}: {ex}'}
+
+
+def api_list(input_req):
+    log_info(f"request list: {input_req}")
     try:
         schedule_handler = ScheduleEventHandler()
-        return schedule_handler.list(input_params)
+        return schedule_handler.list(input_req)
+    except Exception as ex:
+        log_error(traceback.format_exc())
+        return {"error(list)": f": {ex}"}
+
+
+def api_reset():
+    log_info(f"request reset")
+    try:
+        schedule_handler = ScheduleEventHandler()
+        return schedule_handler.reset()
     except Exception as ex:
         log_error(traceback.format_exc())
         return {"error(list)": f": {ex}"}

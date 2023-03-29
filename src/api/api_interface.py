@@ -50,3 +50,5 @@ class ScheduleUnregistration(BaseModel):
 
 class ScheduleList(BaseModel):
     dlq: bool = False
+    name: str = ""
+    group: str = ""

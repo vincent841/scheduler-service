@@ -20,6 +20,7 @@ def initialize_global_database(user_name, user_password, host, port, db_name):
         f"postgresql+psycopg2://{user_name}:{user_password}@{host}:{port}/{db_name}",
         echo=False,
     )
+
     SESSION = sessionmaker(bind=engine)
 
     if not database_exists(engine.url):

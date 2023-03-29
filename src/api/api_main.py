@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.api_method import api_register, api_unregister, api_list
+from api.api_method import api_register, api_unregister, api_list, api_update, api_reset
 
 from api.api_interface import ScheduleRegistration, ScheduleUnregistration, ScheduleList
 from schedule.schedule_event_handler import ScheduleEventHandler
@@ -36,6 +36,14 @@ async def register(inputs: ScheduleRegistration) -> dict:
     return api_register(inputs.dict())
 
 
+@fast_api.post("/update")
+async def update(inputs: ScheduleRegistration) -> dict:
+    """
+    update the existing schedule event
+    """
+    return api_update(inputs.dict())
+
+
 @fast_api.post("/unregister")
 async def unregister(inputs: ScheduleUnregistration) -> dict:
     """
@@ -50,3 +58,11 @@ async def list(inputs: ScheduleList) -> dict:
     list all registered events
     """
     return api_list(inputs.dict())
+
+
+@fast_api.post("/reset")
+async def reset() -> dict:
+    """
+    reset all queues
+    """
+    return api_reset()
