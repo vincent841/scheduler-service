@@ -27,6 +27,19 @@ This service triggers events according to the schedule information specified by 
 pip install -r src/requirements.txt
 ```
 
+#### Workaround 
+##### failing to install psycopg2 on Mac M1
+
+```bash
+# please 
+brew install postgresql
+```
+
+   
+
+
+
+
 ### Prepare ***config.yaml***
 
 copy ***config/config.yaml*** to ***src/*** after modifying it if necessary.
