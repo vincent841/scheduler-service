@@ -76,7 +76,11 @@ python3 -m unittest discover -s test -p "*_test.py"
   
   ```json
    {
-  "name": "test01",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "now",
   "schedule": "",
   "task": {
@@ -89,7 +93,11 @@ python3 -m unittest discover -s test -p "*_test.py"
   
   ```json
    {
-  "name": "test02",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "date",
   "schedule": "2023-02-03T13:33:12",
   "task": {
@@ -117,7 +125,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
   ```json
    {
-  "name": "test04",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "cron",
   "schedule": "*/1 * * * *",
   "task": {
@@ -130,7 +142,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
   ```json
    {
-  "name": "test05",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "delay-recur",
   "schedule": "60",
   "task": {
@@ -145,7 +161,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
   ```json
    {
-  "name": "test06",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "cron",
   "schedule": "*/1 * * * *",
   "task": {
@@ -159,7 +179,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
   ```json
    {
-  "name": "test07",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "cron",
   "schedule": "*/1 * * * *",
   "task": {
@@ -173,7 +197,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
   ```json
    {
-  "name": "test08",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "cron",
   "schedule": "*/1 * * * *",
   "task": {
@@ -188,7 +216,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
 ```json
 {
-  "name": "cron-test",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "cron",
   "schedule": "*/1 * * * *",
   "task": {
@@ -206,7 +238,11 @@ python3 -m unittest discover -s test -p "*_test.py"
 
 ```json
 {
-  "name": "ap3",
+  "client": {
+    "name": "gangster",
+    "group": "activity",
+    "key": "abcdef"
+  },
   "type": "now",
   "schedule": "",
   "task": {
