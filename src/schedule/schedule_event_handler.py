@@ -103,7 +103,7 @@ class ScheduleEventHandler:
 
             # 1. check if name is duplicated.
             if client_info["key"] in self.running_schedules:
-                raise Exception("duplicated key found")
+                self.handle_duplicated_event(schedule_event)
 
             # 1.1. set the insance name
             schedule_event["instance"] = self.instance_name
@@ -146,9 +146,10 @@ class ScheduleEventHandler:
 
             # 8. return the result with the response id
             return {
+                "name": schedule_event["name"],
                 "client": {
-                    "name": client_info["name"],
                     "key": client_info["key"],
+                    "application": client_info["application"],
                     "group": client_info["group"],
                 },
                 "resp_id": str(resp_id),
@@ -156,42 +157,19 @@ class ScheduleEventHandler:
         except Exception as ex:
             raise ex
 
-    def update(self, schedule_event: dict):
-        try:
-            client_info = schedule_event.get("client")
-            assert (
-                client_info["key"]
-                and schedule_event["type"]
-                and schedule_event["schedule"]
-                and schedule_event["task"]
-            )
+    def handle_duplicated_event(self, schedule_event: dict):
+        log_info(f"started to handle the duplicated event: {schedule_event}")
+        # 0. get resp_id
+        client_info = schedule_event["client"]
+        input_key = client_info["key"]
 
-            # 0. get resp_id
-            client_info = schedule_event["client"]
-            input_key = client_info["key"]
+        # 1. delete the previous event and cancel the current event
+        self.tdb.pop(input_key)
+        future_event = self.running_schedules.pop(input_key, None)
+        future_event.cancel() if future_event else None
 
-            # 1. check if this event is in queue based on key
-            key_list = self.tdb.get_key_list()
-            if (
-                (not input_key in self.running_schedules)
-                or (len(key_list) == 0)
-                or (not input_key in key_list)
-            ):
-                raise Exception("this schedule is not existied in the schedule queue")
-
-            # 2. delete the previous event and cancel the current event
-            self.tdb.pop(input_key)
-            future_event = self.running_schedules.pop(input_key, None)
-            future_event.cancel() if future_event else None
-
-            # 3. update the record for the current schedule event
-            self.save_schevt_to_db("deleted", schedule_event)
-
-            # 4. register the updated event
-            return self.register(schedule_event)
-
-        except Exception as ex:
-            raise ex
+        # 2. update the record for the current schedule event
+        self.save_schevt_to_db("deleted", schedule_event)
 
     def unregister(self, input_resp_id: str):
         try:
@@ -223,28 +201,90 @@ class ScheduleEventHandler:
 
         return {"count": found_count}
 
-    def list(self, input_params: dict):
+    def delete_schedules(self, input_resp_id: str = "", input_group_id: str = ""):
+        try:
+            if type(input_resp_id) is not str or input_resp_id == "":
+                raise Exception(f"input_resp_id is not available.. {input_resp_id}")
+
+            # 1. get all key-value data in the localqueue and find the specified name using for-iteration
+            key_value_events = self.tdb.get_key_value_list()
+            log_debug(f"*** get_key_value_list: {key_value_events}")
+
+            found_count = 0
+            if len(key_value_events):
+                for key, registered_event in key_value_events:
+                    # 2. pop the event from localqueue if found
+                    resp_id = registered_event["resp_id"]
+                    client_info = registered_event["client"]
+
+                    if (input_resp_id and (resp_id == input_resp_id)) or (
+                        input_group_id and (input_group_id == client_info["group"])
+                    ):
+                        self.tdb.pop(key)
+                        self.save_schevt_to_db("unregister", registered_event)
+                        # 3. remove it from running_schedules and cancel it
+                        future_event = self.running_schedules.pop(key, None)
+                        future_event.cancel()
+                        found_count += 1
+
+                        log_info(f"handle_event unregistered: {key}({resp_id})")
+
+        except Exception as ex:
+            raise ex
+
+        return {"count": found_count}
+
+    def get_schedules(
+        self, resp_id: str, group: str, application: str, dlq: bool = False
+    ):
         list_item = list()
 
         # 1. fetch the dlq flag, True or False
-        dlq = input_params.get("dlq", False)
-        client_name = input_params.get("name", "")
-        client_group = input_params.get("group", "")
+        client_application = application
+        client_group = group
 
         try:
             # 2. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list(dlq)
-            for _, value in key_value_events:
-                client_info = value["client"]
-                if client_name and client_name != client_info["name"]:
-                    continue
-                if client_group and client_group != client_info["group"]:
-                    continue
-                list_item.append(value)
+            list_item = [
+                schedule
+                for _, schedule in key_value_events
+                if (
+                    not client_application
+                    or client_application == schedule["client"]["application"]
+                )
+                and (not client_group or client_group == schedule["client"]["group"])
+                and (not resp_id or resp_id == schedule["resp_id"])
+            ]
         except Exception as ex:
             raise ex
 
         return list_item
+
+    def get_groups(self):
+        group_list = list()
+        try:
+            key_value_events = self.tdb.get_key_value_list(False)
+            for _, value in key_value_events:
+                client_info = value["client"]
+                if not client_info["group"] in group_list:
+                    group_list.append(client_info["group"])
+
+        except Exception as ex:
+            raise ex
+
+        return group_list
+
+    def delete_group(self, group_id: str) -> dict:
+        try:
+            key_value_events = self.tdb.get_key_value_list(False)
+            for _, value in key_value_events:
+                client_info = value["client"]
+                if not client_info["group"] in group_list:
+                    group_list.append(client_info["group"])
+
+        except Exception as ex:
+            raise ex
 
     def register_next(self, schedule_event):
         try:

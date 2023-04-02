@@ -16,7 +16,7 @@ class ScheduleTaskFailurePolicy(str, Enum):
 
 
 class ScheduleClient(BaseModel):
-    name: str
+    application: str
     group: str
     key: str
 
@@ -33,6 +33,7 @@ class ScheduleTask(BaseModel):
 
 
 class ScheduleRegistration(BaseModel):
+    name: str
     client: ScheduleClient
     type: str
     schedule: str
@@ -44,11 +45,7 @@ class ScheduleRegistrationResult(BaseModel):
     resp_id: str
 
 
-class ScheduleUnregistration(BaseModel):
-    resp_id: str
-
-
 class ScheduleList(BaseModel):
     dlq: bool = False
-    name: str = ""
+    application: str = ""
     group: str = ""

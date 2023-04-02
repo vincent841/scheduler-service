@@ -24,15 +24,14 @@ def api_register(input_req):
         return {"error": f'{input_req["client"]}: {ex}'}
 
 
-def api_unregister(input_req):
-    log_info(f"request unregistration: {input_req}")
+def api_delete_schedules(resp_id):
+    log_info(f"request delete: {resp_id}")
     try:
         schedule_register = ScheduleEventHandler()
-        resp_id = input_req.get("resp_id", "")
-        return schedule_register.unregister(resp_id)
+        return schedule_register.delete_schedules(resp_id)
     except Exception as ex:
         log_error(traceback.format_exc())
-        return {"error": f'{input_req["resp_id"]}: {ex}'}
+        return {"error": f'{resp_id["resp_id"]}: {ex}'}
 
 
 def api_update(input_req):
@@ -45,11 +44,35 @@ def api_update(input_req):
         return {"error": f'{input_req["resp_id"]}: {ex}'}
 
 
-def api_list(input_req):
-    log_info(f"request list: {input_req}")
+def api_get_schedules(
+    resp_id: str, group: str = "", application: str = "", dlq: bool = False
+) -> dict:
+    log_info(
+        f"request get_schedules - resp_id({resp_id}), group({group}), application({application})"
+    )
     try:
         schedule_handler = ScheduleEventHandler()
-        return schedule_handler.list(input_req)
+        return schedule_handler.get_schedules(resp_id, group, application, dlq)
+    except Exception as ex:
+        log_error(traceback.format_exc())
+        return {"error(list)": f": {ex}"}
+
+
+def api_get_groups() -> list:
+    log_info(f"request api_get_groups")
+    try:
+        schedule_handler = ScheduleEventHandler()
+        return schedule_handler.get_groups()
+    except Exception as ex:
+        log_error(traceback.format_exc())
+        return {"error(list)": f": {ex}"}
+
+
+def api_delete_schedule(group_id: str) -> dict:
+    log_info(f"request delete schedule")
+    try:
+        schedule_handler = ScheduleEventHandler()
+        return schedule_handler.delete_schedules(None, group_id)
     except Exception as ex:
         log_error(traceback.format_exc())
         return {"error(list)": f": {ex}"}
