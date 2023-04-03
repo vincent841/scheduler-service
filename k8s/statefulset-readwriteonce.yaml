@@ -19,7 +19,7 @@ spec:
     spec:
       terminationGracePeriodSeconds: 10
       containers:
-        - image: hatiolab/schevt-mgr:0.2.0
+        - image: hatiolab/schevt-mgr:0.3.4
           imagePullPolicy: Always
           name: schevt-mgr
           resources:
