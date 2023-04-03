@@ -36,8 +36,16 @@ async def shutdown_event():
     pass
 
 
-@fast_api.post("/register")
+@fast_api.post("/schedules")
 async def register_schedule(inputs: ScheduleRegistration) -> dict:
+    """
+    register a schedule event
+    """
+    return api_register(inputs.dict())
+
+
+@fast_api.post("/schedules/{id}/update")
+async def register_schedule(id: str, inputs: ScheduleRegistration) -> dict:
     """
     register a schedule event
     """

@@ -12,7 +12,7 @@ from helper.util import convert_bytearray_to_dict
 class LocalQueue:
     TSDB_NAME = "tsdb"
     DLQDB_NAME = "dlqdb"
-    DB_MAP_SIZE = 250 * 1024 * 1024  # default map isze : 250M
+    DB_MAP_SIZE = 512 * 1024 * 1024  # default map isze : 250M
 
     def __init__(self, path):
         self.initialized: bool = False

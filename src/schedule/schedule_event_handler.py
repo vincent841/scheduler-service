@@ -72,7 +72,7 @@ class ScheduleEventHandler:
 
                 schedule_event = value
                 if schedule_event["instance"] == self.instance_name:
-                    log_info(f'registering {schedule_event["name"]}')
+                    log_info(f'registering {schedule_event["name"], }')
                     self.register(schedule_event)
 
             log_info("initialization done..")

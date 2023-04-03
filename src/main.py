@@ -23,6 +23,7 @@ if __name__ == "__main__":
         port=port,
         log_level="info",
         reload=True,
+        timeout_keep_alive=3600,
     )
 
     # # run graphql server using uvicorn

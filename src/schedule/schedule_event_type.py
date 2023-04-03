@@ -4,6 +4,8 @@ from dataclasses_json import dataclass_json
 from datetime import datetime
 from croniter import croniter
 
+from schedule.schedule_util import calculate_cron_unit
+
 
 class ScheduleTaskFailurePolicy(str, Enum):
     IGNORE = "ignore"
@@ -52,9 +54,25 @@ class ScheduleEventType:
     def get_next_and_delay(schedule_event):
         base = datetime.now()
         if schedule_event["type"] == ScheduleEventType.CRON:
-            iter = croniter(schedule_event["schedule"], base)
-            next_time = datetime.timestamp(iter.get_next(datetime))
-            delay = next_time - datetime.timestamp(base)
+            cron_elements = (
+                schedule_event["schedule"].split()
+                if type(schedule_event["schedule"]) is str
+                else str(schedule_event["schedule"]).split()
+            )
+            next_time = None
+            delay = 0
+            if len(cron_elements) == 5:
+                iter = croniter(schedule_event["schedule"], base)
+                next_time = datetime.timestamp(iter.get_next(datetime))
+                delay = next_time - datetime.timestamp(base)
+            elif len(cron_elements) == 6:
+                schedule_data = " ".join(cron_elements[1:])
+                iter = croniter(schedule_data, base)
+                next_time = datetime.timestamp(iter.get_next(datetime))
+                secs = calculate_cron_unit(cron_elements[0])
+                delay = next_time - datetime.timestamp(base) + secs
+            else:
+                raise Exception(f'wrong format error: {schedule_event["schedule"]}')
         elif (
             schedule_event["type"] == ScheduleEventType.DELAY_RECUR
             or schedule_event["type"] == ScheduleEventType.DELAY

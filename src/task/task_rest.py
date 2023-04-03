@@ -18,7 +18,10 @@ log_error = log_message.error
 
 class TaskRest(Task):
     def __init__(self):
-        self.client = httpx.AsyncClient()
+        self.client = httpx.AsyncClient(
+            timeout=None,
+            limits=httpx.Limits(max_keepalive_connections=None, keepalive_expiry=None),
+        )
         self.host = ""
         self.headers = dict()
         self.data = dict()
@@ -45,11 +48,16 @@ class TaskRest(Task):
             # add some the specific key-value in headers
             headers = self.headers or {}
             headers["clientKey"] = client_info["key"]
-            headers["token"] = jwt.encode(kargs, kargs["resp_id"], algorithm="HS256")
+
+            # TODO: ...
+            # headers["token"] = jwt.encode(kargs, kargs["resp_id"], algorithm="HS256")
 
             data = json.dumps(self.data)
             res = await self.client.post(
-                self.host, headers=headers, data=data, timeout=600
+                self.host,
+                headers=headers,
+                data=data,
+                timeout=httpx.Timeout(timeout=None),
             )
             log_debug(f"result: {res.status_code}")
             result = True if res.status_code == 200 else False
