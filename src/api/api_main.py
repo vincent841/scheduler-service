@@ -3,11 +3,11 @@ from typing import Optional
 
 from api.api_method import (
     api_register,
-    api_delete_schedules,
+    api_delete_schedule,
     api_get_schedules,
     api_reset,
     api_get_groups,
-    api_delete_schedule,
+    api_delete_group,
 )
 
 from api.api_interface import ScheduleRegistration
@@ -52,12 +52,12 @@ async def register_schedule(id: str, inputs: ScheduleRegistration) -> dict:
     return api_register(inputs.dict())
 
 
-@fast_api.delete("/schedules/{resp_id}")
-async def delete_schedule(resp_id: str) -> dict:
+@fast_api.delete("/schedules/{id}")
+async def delete_schedule(id: str) -> dict:
     """
     unregister a schedule event
     """
-    return api_delete_schedules(resp_id)
+    return api_delete_schedule(id)
 
 
 @fast_api.get("/schedules")
@@ -68,12 +68,12 @@ async def get_schedules() -> dict:
     return api_get_schedules(None)
 
 
-@fast_api.get("/schedules/{resp_id}")
-async def get_schedules_with_resp_id(resp_id: str) -> dict or list:
+@fast_api.get("/schedules/{id}")
+async def get_schedules_with_resp_id(id: str) -> dict or list:
     """
     list all registered events
     """
-    return api_get_schedules(resp_id)
+    return api_get_schedules(id)
 
 
 @fast_api.get("/failed-schedules")
@@ -89,14 +89,14 @@ async def get_schedule_groups() -> dict or list:
     return api_get_groups()
 
 
-@fast_api.get("/schedule-groups/{group_id}")
-async def get_schedule_group(group_id: str) -> dict or list:
-    return api_get_schedules(None, group=group_id)
+@fast_api.get("/schedule-groups/{id}")
+async def get_schedule_group(id: str) -> dict or list:
+    return api_get_schedules(None, group=id)
 
 
-@fast_api.delete("/schedule-groups/{group_id}")
-async def delete_schedule_group(group_id: str) -> dict or list:
-    return api_delete_schedule(None, group=group_id)
+@fast_api.delete("/schedule-groups/{id}")
+async def delete_schedule_group(id: str) -> dict or list:
+    return api_delete_group(id)
 
 
 @fast_api.post("/admin/reset")

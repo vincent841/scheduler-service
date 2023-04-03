@@ -2,6 +2,7 @@ import os
 import asyncio
 import uuid
 from datetime import datetime
+from fastapi import HTTPException
 
 from config import Config
 from localqueue.local_queue import LocalQueue
@@ -46,14 +47,6 @@ class ScheduleEventHandler:
                 cls._init = True
             except Exception as ex:
                 raise ex
-
-    #  common constructor
-    # def __init__(self):
-    #     try:
-    #         self.tdb = LocalQueue(Config.evt_queue())
-    #         self.running_schedules = list()
-    #     except Exception as ex:
-    #         raise ex
 
     def initialize(self):
         try:
@@ -203,8 +196,12 @@ class ScheduleEventHandler:
 
     def delete_schedules(self, input_resp_id: str = "", input_group_id: str = ""):
         try:
-            if type(input_resp_id) is not str or input_resp_id == "":
-                raise Exception(f"input_resp_id is not available.. {input_resp_id}")
+            if (type(input_resp_id) is not str or input_resp_id == "") and (
+                type(input_group_id) is not str or input_group_id == ""
+            ):
+                raise HTTPException(
+                    status_code=400, detail="Bad Request(No valid input parameters)"
+                )
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             key_value_events = self.tdb.get_key_value_list()
@@ -228,6 +225,9 @@ class ScheduleEventHandler:
                         found_count += 1
 
                         log_info(f"handle_event unregistered: {key}({resp_id})")
+
+            if found_count == 0:
+                raise HTTPException(status_code=404, detail="Item not found")
 
         except Exception as ex:
             raise ex
@@ -445,44 +445,3 @@ class ScheduleEventHandler:
 
                 # 2.2 cancle the current event
                 future_event.cancel() if future_event else None
-
-            # # 1. in case that 'failed_policy' == "retry"
-            # if (
-            #     task_info.get("failed_policy", "ignore") == "retry"
-            #     or task_info.get("failed_policy", "ignore") == "retry_dlq"
-            # ):
-            #     # 1.2 this event will be sent to DLQ if retry count limit is reached to the limit
-            #     if task_info["retry_count"] >= task_info.get(
-            #         "max_retry_count", ScheduleEventHandler.TASK_RETRY_MAX
-            #     ):
-            #         log_info(f"reached retry max count... {key}")
-
-            #         # 1.2.1 pop this schedule from the standard queue and put it into DLQ
-            #         task_info["status"] = ScheduleTaskStatus.FAILED
-
-            #         self.tdb.pop(key)
-
-            #         # 1.2.2 update the schedule event dict and cancel it
-            #         future_event = self.running_schedules.pop(key, None)
-            #         future_event.cancel() if future_event else None
-            #     # 1.3 retry one more..
-            #     else:
-            #         # 1.3.1 put it into the queue with the changed status
-            #         task_info["status"] = ScheduleTaskStatus.RETRY
-            #         self.tdb.put(key, schedule_event)
-
-            #         # 1.3.2 run it again and update the schedule evnet dict.
-            #         handle_event_future = asyncio.run_coroutine_threadsafe(
-            #             self.handle_event(key, schedule_event.copy(), delay),
-            #             asyncio.get_event_loop(),
-            #         )
-            #         self.running_schedules[key] = handle_event_future
-            # # 2. in case that 'failed_policy' == "ignore"
-            # else:
-            #     # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
-            #     self.save_schevt_to_db("failed", schedule_event)
-            #     self.tdb.pop(key)
-            #     future_event = self.running_schedules.pop(key, None)
-
-            #     # 2.2 cancle the current event
-            #     future_event.cancel() if future_event else None
