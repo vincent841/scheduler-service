@@ -335,9 +335,9 @@ class ScheduleEventHandler:
     def retry_failed_schedule(self, schedule_event: dict):
         client_info = schedule_event["client"]
         schedule_event["type"] = "delay-recur"
-        schedule_event["schedule"] = schedule_event["retry_period"]
+        schedule_event["schedule"] = schedule_event.get("retry_period", 60)
         tz = schedule_event["timezone"]
-        client_info["operation"] = f'{client_info["operation"]}_retry'
+        client_info["operation"] = f'{client_info["operation"]}'
 
         # 2. calculate the next timestamp and delay based on schedule_event
         (next_time, delay) = ScheduleType.get_next_and_delay(schedule_event, tz)
