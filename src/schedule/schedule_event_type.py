@@ -21,14 +21,6 @@ class ScheduleTaskStatus:
     FAILED = "failed"
 
 
-class ScheduleType:
-    IDLE = "idle"
-    WAITING = "waiting"
-    RETRY = "retry"
-    DONE = "done"
-    FAILED = "failed"
-
-
 class ScheduleEventType:
     NOW = "now"
     DELAY = "delay"
