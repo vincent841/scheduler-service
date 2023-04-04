@@ -16,9 +16,10 @@ class ScheduleTaskFailurePolicy(str, Enum):
 
 
 class ScheduleClient(BaseModel):
-    application: str
-    group: str
-    key: str
+    operation: str
+    application: Optional[str]
+    group: Optional[str]
+    key: Optional[str]
 
 
 class ScheduleTask(BaseModel):
@@ -30,22 +31,18 @@ class ScheduleTask(BaseModel):
         ScheduleTaskFailurePolicy
     ] = ScheduleTaskFailurePolicy.IGNORE
     max_retry_count: Optional[int] = 3
+    retry_period: Optional[int] = 60
 
 
-class ScheduleRegistration(BaseModel):
+class Schedule(BaseModel):
     name: str
     client: ScheduleClient
     type: str
     schedule: str
+    timezone: str
     task: ScheduleTask
 
 
-class ScheduleRegistrationResult(BaseModel):
-    client: ScheduleClient
-    resp_id: str
-
-
-class ScheduleList(BaseModel):
-    dlq: bool = False
-    application: str = ""
-    group: str = ""
+class ScheduleAdmin(BaseModel):
+    user: str
+    password: str

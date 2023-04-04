@@ -10,7 +10,7 @@ from api.api_method import (
     api_delete_group,
 )
 
-from api.api_interface import ScheduleRegistration
+from api.api_interface import Schedule, ScheduleAdmin
 from schedule.schedule_event_handler import ScheduleEventHandler
 
 
@@ -37,7 +37,7 @@ async def shutdown_event():
 
 
 @fast_api.post("/schedules")
-async def register_schedule(inputs: ScheduleRegistration) -> dict:
+async def register_schedule(inputs: Schedule) -> dict:
     """
     register a schedule event
     """
@@ -45,7 +45,7 @@ async def register_schedule(inputs: ScheduleRegistration) -> dict:
 
 
 @fast_api.post("/schedules/{id}/update")
-async def register_schedule(id: str, inputs: ScheduleRegistration) -> dict:
+async def update_schedule(id: str, inputs: Schedule) -> dict:
     """
     register a schedule event
     """
@@ -60,48 +60,37 @@ async def delete_schedule(id: str) -> dict:
     return api_delete_schedule(id)
 
 
+@fast_api.delete("/schedules")
+async def delete_schedule(
+    operation: str = "", application: str = "", group: str = "", key: str = ""
+) -> dict:
+    """
+    unregister a schedule event
+    """
+    return api_delete_schedule(None, operation, application, group, key)
+
+
 @fast_api.get("/schedules")
-async def get_schedules() -> dict:
+async def get_schedules(
+    operation: str = "", application: str = "", group: str = "", key: str = ""
+) -> list:
     """
     list all registered events
     """
-    return api_get_schedules(None)
+    return api_get_schedules(None, operation, application, group, key)
 
 
 @fast_api.get("/schedules/{id}")
-async def get_schedules_with_resp_id(id: str) -> dict or list:
+async def get_schedules_with_resp_id(id: str) -> list:
     """
     list all registered events
     """
     return api_get_schedules(id)
 
 
-@fast_api.get("/failed-schedules")
-async def get_failed_schedules() -> dict or list:
-    """
-    fetch all failed schedules
-    """
-    return api_get_schedules(None, "", "", True)
-
-
-@fast_api.get("/schedule-groups")
-async def get_schedule_groups() -> dict or list:
-    return api_get_groups()
-
-
-@fast_api.get("/schedule-groups/{id}")
-async def get_schedule_group(id: str) -> dict or list:
-    return api_get_schedules(None, group=id)
-
-
-@fast_api.delete("/schedule-groups/{id}")
-async def delete_schedule_group(id: str) -> dict or list:
-    return api_delete_group(id)
-
-
 @fast_api.post("/admin/reset")
-async def reset() -> dict:
+async def reset(admin_info: ScheduleAdmin) -> dict:
     """
     reset all queues
     """
-    return api_reset()
+    return api_reset(admin_info.dict())

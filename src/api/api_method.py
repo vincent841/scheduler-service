@@ -20,10 +20,18 @@ def api_register(input_req):
     return schedule_register.register(input_req)
 
 
-def api_delete_schedule(resp_id):
+def api_delete_schedule(
+    resp_id: str,
+    operation: str = "",
+    application: str = "",
+    group: str = "",
+    key: str = "",
+):
     log_info(f"request delete: {resp_id}")
     schedule_register = ScheduleEventHandler()
-    return schedule_register.delete_schedules(resp_id)
+    return schedule_register.delete_schedules(
+        resp_id, operation, application, group, key
+    )
 
 
 def api_update(input_req):
@@ -37,13 +45,20 @@ def api_update(input_req):
 
 
 def api_get_schedules(
-    resp_id: str, group: str = "", application: str = "", dlq: bool = False
-) -> dict:
+    resp_id: str,
+    operation: str = "",
+    application: str = "",
+    group: str = "",
+    key: str = "",
+    dlq: bool = False,
+) -> list:
     log_info(
-        f"request get_schedules - resp_id({resp_id}), group({group}), application({application})"
+        f"request get_schedules - resp_id({resp_id}), group({group}), application({application}), operation({operation}), key({key})"
     )
     schedule_handler = ScheduleEventHandler()
-    return schedule_handler.get_schedules(resp_id, group, application, dlq)
+    return schedule_handler.get_schedules(
+        resp_id, operation, application, group, key, dlq
+    )
 
 
 def api_get_groups() -> list:
@@ -58,7 +73,7 @@ def api_delete_group(group_id: str) -> dict:
     return schedule_handler.delete_schedules(None, group_id)
 
 
-def api_reset():
+def api_reset(admin_info) -> dict:
     log_info(f"request reset")
     schedule_handler = ScheduleEventHandler()
-    return schedule_handler.reset()
+    return schedule_handler.reset(admin_info)
