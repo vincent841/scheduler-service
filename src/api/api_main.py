@@ -62,22 +62,30 @@ async def delete_schedule(id: str) -> dict:
 
 @fast_api.delete("/schedules")
 async def delete_schedule(
-    operation: str = "", application: str = "", group: str = "", key: str = ""
+    operation: str = "",
+    application: str = "",
+    group: str = "",
+    key: str = "",
+    type: str = "",
 ) -> dict:
     """
     unregister a schedule event
     """
-    return api_delete_schedule(None, operation, application, group, key)
+    return api_delete_schedule(None, operation, application, group, key, type)
 
 
 @fast_api.get("/schedules")
 async def get_schedules(
-    operation: str = "", application: str = "", group: str = "", key: str = ""
+    operation: str = "",
+    application: str = "",
+    group: str = "",
+    key: str = "",
+    type: str = "",
 ) -> list:
     """
     list all registered events
     """
-    return api_get_schedules(None, operation, application, group, key)
+    return api_get_schedules(None, operation, application, group, key, type)
 
 
 @fast_api.get("/schedules/{id}")

@@ -26,11 +26,12 @@ def api_delete_schedule(
     application: str = "",
     group: str = "",
     key: str = "",
+    client_type: str = "",
 ):
     log_info(f"request delete: {resp_id}")
     schedule_register = ScheduleEventHandler()
     return schedule_register.delete_schedules(
-        resp_id, operation, application, group, key
+        resp_id, operation, application, group, key, client_type
     )
 
 
@@ -50,14 +51,15 @@ def api_get_schedules(
     application: str = "",
     group: str = "",
     key: str = "",
+    client_type: str = "",
     dlq: bool = False,
 ) -> list:
     log_info(
-        f"request get_schedules - resp_id({resp_id}), group({group}), application({application}), operation({operation}), key({key})"
+        f"request get_schedules - resp_id({resp_id}), group({group}), application({application}), operation({operation}), key({key}, type({client_type}))"
     )
     schedule_handler = ScheduleEventHandler()
     return schedule_handler.get_schedules(
-        resp_id, operation, application, group, key, dlq
+        resp_id, operation, application, group, key, client_type, dlq
     )
 
 

@@ -20,6 +20,7 @@ class ScheduleClient(BaseModel):
     application: Optional[str]
     group: Optional[str]
     key: Optional[str]
+    type: Optional[str]
 
 
 class ScheduleTask(BaseModel):

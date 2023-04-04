@@ -200,6 +200,7 @@ class ScheduleEventHandler:
         application: str,
         group: str,
         key: str,
+        client_type: str,
         dlq: bool = False,
     ):
         try:
@@ -209,6 +210,7 @@ class ScheduleEventHandler:
                 and (type(application) is not str or application == "")
                 and (type(group) is not str or group == "")
                 and (type(key) is not str or key == "")
+                and (type(client_type) is not str or client_type == "")
             ):
                 raise HTTPException(
                     status_code=400, detail="Bad Request(No valid input parameters)"
@@ -231,6 +233,7 @@ class ScheduleEventHandler:
                         or (application and (application == client_info["application"]))
                         or (operation and (operation == client_info["operation"]))
                         or (key and (key == client_info["key"]))
+                        or (client_type and (client_type == client_info["type"]))
                     ):
                         self.tdb.pop(key)
                         self.save_schevt_to_db("unregister", registered_event)
@@ -256,6 +259,7 @@ class ScheduleEventHandler:
         application: str,
         group: str,
         key: str,
+        client_type: str,
         dlq: bool = False,
     ):
         list_item = list()
@@ -263,7 +267,6 @@ class ScheduleEventHandler:
         try:
             # 2. gather all key-value data from the localqueue
             key_value_events = self.tdb.get_key_value_list(dlq)
-            print(f"key_value_events: {key_value_events}")
             list_item = [
                 schedule
                 for _, schedule in key_value_events
@@ -272,8 +275,8 @@ class ScheduleEventHandler:
                 and (not operation or operation == schedule["client"]["operation"])
                 and (not key or key == schedule["client"]["key"])
                 and (not resp_id or resp_id == schedule["id"])
+                and (not client_type or client_type == schedule["client"]["type"])
             ]
-            print(f"list_item: {list_item}")
         except Exception as ex:
             print(f"Exception: {ex}")
             raise ex
