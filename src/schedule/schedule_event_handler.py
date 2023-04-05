@@ -250,7 +250,8 @@ class ScheduleEventHandler:
                         self.save_schevt_to_db("unregister", registered_event)
                         # 3. remove it from running_schedules and cancel it
                         future_event = self.running_schedules.pop(key, None)
-                        future_event.cancel()
+                        if future_event:
+                            future_event.cancel()
                         found_count += 1
 
                         log_info(f"handle_event unregistered: {key}({fetched_resp_id})")
