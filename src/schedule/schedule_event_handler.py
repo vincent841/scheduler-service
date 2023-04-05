@@ -85,7 +85,15 @@ class ScheduleEventHandler:
             pass
 
     def get_localdb_key(self, client_info: dict):
-        return ",".join([client_info.get("operation", ""), client_info.get("key", "")])
+        return ",".join(
+            [
+                client_info.get("operation", ""),
+                client_info.get("application", ""),
+                client_info.get("group", ""),
+                client_info.get("key", ""),
+                client_info.get("type", ""),
+            ]
+        )
 
     def register(self, schedule_event: dict):
         try:
