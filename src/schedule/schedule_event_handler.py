@@ -513,18 +513,20 @@ class ScheduleEventHandler:
                 #     or task_info.get("failed_policy", "ignore") == "retry_dlq"
                 # ):
                 if False:
+                    pass
                     task_info["status"] = ScheduleTaskStatus.RETRY
                     self.retry_failed_schedule(schedule_event)
                 else:
-                    task_info["status"] = ScheduleTaskStatus.FAILED
-                    log_debug(f"got the wrong response of the task({key})")
-                    # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
-                    self.save_schevt_to_db("failed", schedule_event)
-                    self.tdb.pop(key)
-                    future_event = self.running_schedules.pop(key, None)
+                    pass
+                    # task_info["status"] = ScheduleTaskStatus.FAILED
+                    # log_debug(f"got the wrong response of the task({key})")
+                    # # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
+                    # self.save_schevt_to_db("failed", schedule_event)
+                    # self.tdb.pop(key)
+                    # future_event = self.running_schedules.pop(key, None)
 
-                    # 2.2 cancle the current event
-                    future_event.cancel() if future_event else None
+                    # # 2.2 cancle the current event
+                    # future_event.cancel() if future_event else None
 
         except Exception as ex:
             log_error(f"Exception: {ex}")
