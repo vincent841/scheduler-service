@@ -29,30 +29,30 @@ class TaskRest(Task):
     def get_name(self):
         return "rest"
 
-    def connect(self, **kargs):
+    def connect(self, **schedule_event):
         try:
-            connection_info = kargs["connection"]
+            connection_info = schedule_event["connection"]
             self.host = connection_info["host"]
             self.headers = connection_info.get("headers", {})
-            self.data = kargs.get("data", {})
+            self.data = schedule_event.get("data", {})
         except Exception as ex:
             log_error(f"Exception: {ex}")
             raise ex
 
-    async def run(self, **kargs) -> bool:
+    async def run(self, **schedule_event) -> bool:
         result = False
         try:
             # like {"Accept": "application/json", "Content-Type": "application/json"}
-            client_info = kargs["client"]
+            client_info = schedule_event["client"]
 
             # add some the specific key-value in headers
             headers = self.headers or {}
-            headers["clientKey"] = client_info["key"]
+            # headers["clientKey"] = client_info["key"]
 
             # TODO: ...
-            # headers["token"] = jwt.encode(kargs, kargs["resp_id"], algorithm="HS256")
+            # headers["token"] = jwt.encode(schedule_event, schedule_event["resp_id"], algorithm="HS256")
 
-            data = json.dumps(self.data)
+            data = json.dumps(schedule_event)
             res = await self.client.post(
                 self.host,
                 headers=headers,
