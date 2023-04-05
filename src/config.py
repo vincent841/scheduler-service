@@ -30,7 +30,9 @@ class Config:
     @classmethod
     def db(cls):
         try:
-            config_data = cls.CONFIG_DATA.get("db")
+            config_data = cls.CONFIG_DATA.get("db", None)
+            if not config_data:
+                return None
             assert (
                 config_data["host"]
                 and config_data["port"]

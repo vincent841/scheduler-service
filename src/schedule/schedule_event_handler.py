@@ -66,7 +66,7 @@ class ScheduleEventHandler:
                 schedule_event = value
                 if schedule_event["instance"] == self.instance_name:
                     log_info(f'registering {schedule_event["name"], }')
-                    self.register(schedule_event)
+                    self.register(schedule_event, application_init=True)
 
             log_info("initialization done..")
         except Exception as ex:
@@ -95,7 +95,7 @@ class ScheduleEventHandler:
             ]
         )
 
-    def register(self, schedule_event: dict):
+    def register(self, schedule_event: dict, application_init: bool = False):
         try:
             client_info = schedule_event.get("client")
             local_queue_key = self.get_localdb_key(client_info)
@@ -108,8 +108,9 @@ class ScheduleEventHandler:
             schedule_event["instance"] = self.instance_name
 
             # 2. store this schedule_event to timastamp db with response id
-            resp_id = uuid.uuid4()
-            schedule_event["id"] = str(resp_id)
+            if not application_init:
+                resp_id = uuid.uuid4()
+                schedule_event["id"] = str(resp_id)
 
             # 3. get the next timestamp and the delay based on schedule format
             tz = schedule_event["timezone"]
