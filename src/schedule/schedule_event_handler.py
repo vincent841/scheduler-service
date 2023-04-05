@@ -154,7 +154,7 @@ class ScheduleEventHandler:
                     "application": client_info["application"],
                     "group": client_info["group"],
                 },
-                "id": str(resp_id),
+                "id": str(schedule_event["id"]),
             }
         except Exception as ex:
             print(f"Exception: {ex}")
@@ -322,15 +322,11 @@ class ScheduleEventHandler:
 
                 input_data_task = schedule_event["task"]
 
-                # 3. reset the retry count
-                input_data_task["retry_count"] = 0
-
                 # 4. set the next timestamp
                 input_data_task["next"] = next_time
 
                 # 5. set the evetn to the localqueue
                 self.tdb.put(local_queue_key, schedule_event)
-                self.save_schevt_to_db("register", schedule_event)
 
                 handle_event_future = asyncio.run_coroutine_threadsafe(
                     self.handle_event(local_queue_key, schedule_event.copy(), delay),
@@ -491,42 +487,25 @@ class ScheduleEventHandler:
             # 4. set the lastRun
             task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-            # 5. put the next schedule
-            self.register_next(schedule_event)
-
-            # 5. handle the result of this task run
+            # 5. update the status of tis task
+            history_db_status = ""
             if res:
                 # 4.1 put it into the queue with status 'Done'
                 task_info["status"] = ScheduleTaskStatus.DONE
                 task_info["iteration"] += 1
-                task_info["lastRun"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                task_info["retry_count"] = 0
                 self.tdb.put(key, schedule_event)
-                self.save_schevt_to_db("done", schedule_event)
+                history_db_status = "done"
             else:
-                log_debug(f'failed_policy: {task_info.get("failed_policy")}')
+                task_info["status"] = ScheduleTaskStatus.RETRY
+                task_info["retry_count"] += 1
+                self.tdb.put(key, schedule_event)
+                history_db_status = "failed"
 
-                """
-                TODO: make the retry process in a clear way...
-                """
-                # if (
-                #     task_info.get("failed_policy", "ignore") == "retry"
-                #     or task_info.get("failed_policy", "ignore") == "retry_dlq"
-                # ):
-                if False:
-                    pass
-                    task_info["status"] = ScheduleTaskStatus.RETRY
-                    self.retry_failed_schedule(schedule_event)
-                else:
-                    pass
-                    # task_info["status"] = ScheduleTaskStatus.FAILED
-                    # log_debug(f"got the wrong response of the task({key})")
-                    # # 2.1 savd the event to history db with status 'failed' and udpate the schedule event dictionary
-                    # self.save_schevt_to_db("failed", schedule_event)
-                    # self.tdb.pop(key)
-                    # future_event = self.running_schedules.pop(key, None)
+            self.save_schevt_to_db(history_db_status, schedule_event)
 
-                    # # 2.2 cancle the current event
-                    # future_event.cancel() if future_event else None
+            # 5. put the next schedule
+            self.register_next(schedule_event)
 
         except Exception as ex:
             log_error(f"Exception: {ex}")
