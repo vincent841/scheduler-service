@@ -1,17 +1,20 @@
 # 스케줄러 서비스
 
+## MSA 기반의 스케줄러 서비스
+
+![MSA Scheduler Service](./assets/scheduler-service-msa.png "MSA Scheduler Service")
+
+- 기존의 어플리케이션 구조에서 스케줄링 잡을 처리하는 스케줄러 서비스가 클라우드 기반의 수평 스케일링 구조에서 기능 수행이 불가능.
+- 별도의 스케줄러 서비스가 필요. 이러한 스케줄 작업을 수행하는 서비스는 다수 존재하지만 스케줄러 역할만을 수행하는 분리된 서비스가 없음.
+- 클라우드 환경에서 사용 가능한 수평적인 확장이 가능한 서비스 개발이 필요.
+
+
 ## 서비스 개요
 
-![Scalable Scheduler Service](./assets/scheduler-service-diagram.png "Scalable Scheduler Service")
+![Scalable Scheduler Service](./assets/scheduler-service-scalable.png "Scalable Scheduler Service")
 
 - 스케줄러 서비스는 Restful 기반의 수평 확장이 가능한 스케줄러 서비스.
 - MSA 기반의 어플리케이션 환경에서 기존 어플리케이션이 수행하는 스케줄링 모듈에 대해서, 별도의 스케줄링 서비스를 분리해서 제공하는 서비스를 제공합니다.
-
-### 용도 
-
-  - 크론(cron) 기반의 스케줄잡 관리
-  - 특정한 날짜 혹은 특정한 주기로 실행되는 모듈 관리
-  - 별도의 이벤트 매니저로서 다른 서비스의 특정 기능을 실행
 
 ## 서비스 특징
 
@@ -21,9 +24,16 @@
 - Rest API 외에 GraphQL 인터페이스 제공.
 
 
+## 사용 가능한 용도
+
+  - 크론(cron) 기반의 스케줄잡(Schedule Job) 핸들러
+  - 특정한 날짜 혹은 특정한 주기로 실행되는 태스크 실행 엔진
+  - 특정한 이벤트를 등록 관리하고, 이벤트를 기반으로 특정 기능을 실행하거나 데이터를 전달하는 브로커
+
+
 ## 스케줄러 구성
 
-![Scheduler](./assets/scheduler-details.png "Scheduler")
+![Scheduler](./assets/scheduler-internal.png "Scheduler")
 
 ### ASGI(FastAPI)
 

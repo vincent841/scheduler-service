@@ -472,9 +472,9 @@ class ScheduleEventHandler:
             self.tdb.put(key, schedule_event)
 
             # 2. sleep with the input delay
-            log_info(f"*** before sleep({key})")
+            log_info(f"*** before sleep({delay}, {key})")
             await asyncio.sleep(delay)
-            log_debug(f"*** after sleep({key})")
+            log_debug(f"*** after sleep({delay}, {key})")
 
             # 3. run a task based on task parameters
             task_cls = TaskManager.get(task_info["type"])
