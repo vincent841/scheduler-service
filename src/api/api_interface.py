@@ -18,8 +18,8 @@ class ScheduleTaskFailurePolicy(str, Enum):
 class ScheduleClient(BaseModel):
     application: Optional[str] = Field(default="", title="Client application name")
     group: Optional[str] = Field(default="", title="Client group name")
-    key: Optional[str] = Field(default="", title="Data key managed by client")
     type: Optional[str] = Field(default="", title="Resource type")
+    key: Optional[str] = Field(default="", title="Data key managed by client")
     operation: Optional[str] = Field(default="", title="Operation name")
 
 

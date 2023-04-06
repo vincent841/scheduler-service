@@ -86,11 +86,11 @@ class ScheduleEventHandler:
     def get_localdb_key(self, client_info: dict):
         return ",".join(
             [
-                client_info.get("operation", ""),
                 client_info.get("application", ""),
                 client_info.get("group", ""),
-                client_info.get("key", ""),
                 client_info.get("type", ""),
+                client_info.get("key", ""),
+                client_info.get("operation", ""),
             ]
         )
 
@@ -148,10 +148,11 @@ class ScheduleEventHandler:
             return {
                 "name": schedule_event["name"],
                 "client": {
-                    "operation": client_info["operation"],
-                    "key": client_info["key"],
                     "application": client_info["application"],
                     "group": client_info["group"],
+                    "type": client_info["type"],
+                    "key": client_info["key"],
+                    "operation": client_info["operation"],
                 },
                 "id": str(schedule_event["id"]),
             }
