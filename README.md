@@ -78,7 +78,7 @@
     "data": {"instanceName": "delay-test-999", "variables": {}},
     "history_check": false,
     "failed_policy": "retry",
-    "max_retry_count": 3
+    "retry_wait": 60
   }
 }
 

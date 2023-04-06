@@ -48,7 +48,6 @@ class ScheduleTaskInput:
     failed_policy: Optional[
         ScheduleTaskFailurePolicy
     ] = ScheduleTaskFailurePolicy.IGNORE
-    max_retry_count: Optional[int] = 3
 
 
 @dataclass_json
@@ -107,7 +106,6 @@ class ScheduleTask:
     failed_policy: Optional[
         ScheduleTaskFailurePolicy
     ] = ScheduleTaskFailurePolicy.IGNORE
-    max_retry_count: Optional[int] = 3
     status: Optional[ScheduleTaskStatus] = ScheduleTaskStatus.IDLE
     iteration: Optional[int] = 0
     last_run: Optional[str] = ""

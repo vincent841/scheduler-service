@@ -100,7 +100,7 @@ class ScheduleType:
             raise Exception("Invalid schedule type")
 
         log_info(
-            f'operation({schedule_event["client"]}), next_time({int(next_time)}), delay({delay})'
+            f'schedule({schedule_event["name"]}), next_time({int(next_time)}), delay({delay})'
         )
 
         return (int(next_time), delay if delay >= 0 else 0)

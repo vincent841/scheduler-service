@@ -6,8 +6,6 @@ from api.api_method import (
     api_delete_schedule,
     api_get_schedules,
     api_reset,
-    api_get_groups,
-    api_delete_group,
 )
 
 from api.api_interface import Schedule, ScheduleAdmin
