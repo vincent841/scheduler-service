@@ -1,18 +1,4 @@
-# Scalable Scheduler Service
-
-## Service Overview
-
-![Scalable Scheduler Service](./assets/scheduler-service-diagram.png "Scalable Scheduler Service")
-
-This service triggers events according to the schedule information specified by the user, and is intended for use in a cloud environment as well as a local environment.
-
-### Features
-
-- Asynchronous schedule event handling
-- Horizontal scalability according to service load
-- Schedule recovery when service restarts
-- Schedule Event History
-
+# Install
 
 ## Setup
 

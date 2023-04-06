@@ -202,7 +202,46 @@
 
 
 
+## 설치 및 실행
 
+### 파이썬 버전
+
+- python 3.9 or later
+
+
+### 필수 모듈 설치
+
+```bash
+pip install -r src/requirements.txt
+```
+
+### 설치 시 오류 대처
+##### 맥에서 psycopg2 설치 시 에러가 날 경우.
+
+```bash
+# please 
+brew install postgresql
+```
+
+
+### ***config.yaml*** 준비
+
+***config/config.yaml***을  ***src/*** 디렉토리에 복사하고 필요 시 일부 모듈을 수정합니다.
+
+
+### API 서버 실행
+
+```bash
+cd src
+python3 main.py
+```
+
+### 유닛 테스트 코드 실행
+
+```bash
+cd src
+python3 -m unittest discover -s test -p "*_test.py"
+```
 
 
 
