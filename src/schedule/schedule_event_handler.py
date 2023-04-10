@@ -59,6 +59,7 @@ class ScheduleEventHandler:
                     "cannot find environment variable POD_NAME, so assume that th only one instance is running."
                 )
 
+            # LOCALQUEUE: find a schedule with the specific "instance" key
             key_value_events = self.tdb.get_key_value_list()
             for key, value in key_value_events:
                 assert (type(key) is str) and (type(value) is dict)
@@ -180,6 +181,7 @@ class ScheduleEventHandler:
                 raise Exception(f"input_resp_id is not available.. {input_resp_id}")
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
+            # LOCALQUEUE: search with filter "ID"
             key_value_events = self.tdb.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
 
@@ -228,6 +230,7 @@ class ScheduleEventHandler:
                 )
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
+            # LOCALQUEUE: search a schedule with "ID" and "client" elementes
             key_value_events = self.tdb.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
 
@@ -438,7 +441,9 @@ class ScheduleEventHandler:
             self.tdb.put(key, schedule_event)
 
             # 2. sleep with the input delay
-            log_info(f"*** about to apply the delay({delay}, {key})")
+            log_info(
+                f'***{key} about to apply the delay({delay}, {str(datetime.fromtimestamp(task_info["next"]))})'
+            )
             await asyncio.sleep(delay)
 
             log_info(f'*** start this task({task_info["type"]}, {key})')

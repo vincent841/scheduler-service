@@ -94,27 +94,3 @@ class LocalQueue:
                 for key, value in txn.cursor()
             ]
         return key_value_list
-
-    """
-    DEPRECATED
-    schedule events that are already in the past are extracted from the current time,
-    but deprecated in this time becasue the polling loop was already vanished.
-    """
-
-    def trigger_events(self) -> list:
-        try:
-            self.check_database_initialized()
-            event_data_list = list()
-            with self._imdb_env.begin(db=self.tsdb, write=True) as txn:
-                curr_tstamp = time.time_ns()
-                cursor = txn.cursor()
-                for key, _ in cursor.iternext():
-                    if int(key) <= curr_tstamp:
-                        event_data = cursor.pop(key)
-                        event_data_list.append(LocalQueue.convert_to_dict(event_data))
-                        break
-        except Exception as ex:
-            print("trigger event error: ", ex)
-            event_data_list = []
-
-        return event_data_list
