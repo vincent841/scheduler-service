@@ -1,12 +1,22 @@
+
 ---
-# Database conneciton info.
-# db:
-#   host: abc.com
+# local or pg
+queue: local
+
+local: ../evt_queue
+
+# pg:
+#   host: xxx.xxx.xxx.xxx
 #   port: 1234
 #   id: username
 #   pw: likepassword
 #   db: likedbname
 
-# Local queue storage location
-localqueue:
-  evt_queue: ../evt_queue
+# history:
+#   host: xxx.xxx.xxx.xxx
+#   port: 1234
+#   id: username
+#   pw: likepassword
+#   db: likedbname
+
+

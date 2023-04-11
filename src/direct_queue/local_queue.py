@@ -6,10 +6,11 @@ import json
 # from helper.logger import Logger
 # from helper.util import print_elasped_time
 
+from direct_queue.queue_abstraction import Queue
 from helper.util import convert_bytearray_to_dict
 
 
-class LocalQueue:
+class LocalQueue(Queue):
     TSDB_NAME = "tsdb"
     DLQDB_NAME = "dlqdb"
     DB_MAP_SIZE = 512 * 1024 * 1024  # default map isze : 250M

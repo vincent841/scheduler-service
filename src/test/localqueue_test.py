@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from localqueue.local_queue import LocalQueue
+from direct_queue.local_queue import LocalQueue
 
 
 class LocalQueueTest(TestCase):

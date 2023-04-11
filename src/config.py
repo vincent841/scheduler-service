@@ -28,7 +28,7 @@ class Config:
         return cls.CONFIG_DATA.get(key, None)
 
     @classmethod
-    def db(cls):
+    def history(cls):
         try:
             config_data = cls.CONFIG_DATA.get("db", None)
             if not config_data:
@@ -56,26 +56,15 @@ class Config:
             else None
         )
 
-    # deprecated
     @classmethod
-    def eventbus(cls):
+    def queue_info(cls):
         try:
-            backend_list = cls.CONFIG_DATA.get("eventbus")
-            assert backend_list is not None
-        except Exception as ex:
-            print(f"invalid configuration(eventbus): \n{ex}")
-            backend_list = None
-        return backend_list
-
-    @classmethod
-    def evt_queue(cls):
-        try:
-            evt_q_name = cls.CONFIG_DATA.get("localqueue").get("evt_queue")
-            assert type(evt_q_name) == str
+            queue_type = cls.CONFIG_DATA.get("queue", "local")
+            info = cls.CONFIG_DATA.get(queue_type, {})
         except Exception as ex:
             print(f"invalid configuration(evt_queue): \n{ex}")
-            evt_q_name = ""
-        return evt_q_name
+            info = {}
+        return (queue_type, info)
 
 
 if __name__ == "__main__":

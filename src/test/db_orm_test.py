@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
-from db.db_engine import initialize_global_database, get_session
-from db.tables.table_schedule_history import ScheduleEventHistory
+from history.db_engine import initialize_global_database, get_session
+from history.tables.table_schedule_history import ScheduleEventHistory
 
 from config import Config
 
@@ -10,7 +10,7 @@ Config("config.yaml")
 
 class DBOrmTest(TestCase):
     def test_db_initialization(self):
-        (host, port, id, pw, db) = Config.db()
+        (host, port, id, pw, db) = Config.history()
         initialize_global_database(id, pw, host, port, db)
 
         db_session = get_session()
@@ -18,7 +18,7 @@ class DBOrmTest(TestCase):
         self.assertIsNotNone(db_session)
 
     def test_db_add_record(self):
-        (host, port, id, pw, db) = Config.db()
+        (host, port, id, pw, db) = Config.history()
         initialize_global_database(id, pw, host, port, db)
         db_session = get_session()
 
@@ -36,7 +36,7 @@ class DBOrmTest(TestCase):
         db_session.commit()
 
     def test_db_delete_record(self):
-        (host, port, id, pw, db) = Config.db()
+        (host, port, id, pw, db) = Config.history()
         initialize_global_database(id, pw, host, port, db)
         db_session = get_session()
 

@@ -5,13 +5,14 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from config import Config
-from localqueue.local_queue import LocalQueue
+from direct_queue.local_queue import LocalQueue
+from direct_queue.pg_queue import PGQueue
 from schedule.schedule_event_type import ScheduleType, ScheduleTaskStatus
 from task.task_mgr import TaskManager
 from task.task_import import TASK_ACTIVE_MODULE_LIST
 
-from db.db_engine import initialize_global_database, get_session
-from db.tables.table_schedule_history import ScheduleEventHistory
+from history.db_engine import initialize_global_database, get_session
+from history.tables.table_schedule_history import ScheduleEventHistory
 
 
 import sys
@@ -41,7 +42,13 @@ class ScheduleEventHandler:
         cls = type(self)
         if not hasattr(cls, "_init"):
             try:
-                self.tdb = LocalQueue(Config.evt_queue())
+                # TODO: need to the generalization of schedule_queue creation...
+                (queue_type, queue_info) = Config.queue_info()
+                if queue_type == "local":
+                    self.schedule_db = LocalQueue(queue_info)
+                elif queue_type == "pg":
+                    self.schedule_db = PGQueue(queue_info)
+
                 self.running_schedules = dict()
                 self.instance_name = ScheduleEventHandler.DEFAULT_LOCAL_POD_NAME
                 cls._init = True
@@ -60,7 +67,7 @@ class ScheduleEventHandler:
                 )
 
             # LOCALQUEUE: find a schedule with the specific "instance" key
-            key_value_events = self.tdb.get_key_value_list()
+            key_value_events = self.schedule_db.get_key_value_list()
             for key, value in key_value_events:
                 assert (type(key) is str) and (type(value) is dict)
                 schedule_event = value
@@ -132,7 +139,7 @@ class ScheduleEventHandler:
             input_data_task["lastRun"] = None
 
             # 5. store the updated schedule event
-            self.tdb.put(local_queue_key, schedule_event)
+            self.schedule_db.put(local_queue_key, schedule_event)
             self.save_schevt_to_db("register", schedule_event)
 
             # 6. start a schedule event task
@@ -168,7 +175,7 @@ class ScheduleEventHandler:
         local_key = self.get_localdb_key(client_info)
 
         # 1. delete the previous event and cancel the current event
-        self.tdb.pop(local_key)
+        self.schedule_db.pop(local_key)
         future_event = self.running_schedules.pop(local_key, None)
         future_event.cancel() if future_event else None
 
@@ -182,7 +189,7 @@ class ScheduleEventHandler:
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             # LOCALQUEUE: search with filter "ID"
-            key_value_events = self.tdb.get_key_value_list()
+            key_value_events = self.schedule_db.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
 
             found_count = 0
@@ -192,7 +199,7 @@ class ScheduleEventHandler:
                     resp_id = registered_event["id"]
 
                     if resp_id == input_resp_id:
-                        self.tdb.pop(key)
+                        self.schedule_db.pop(key)
                         self.save_schevt_to_db("unregister", registered_event)
                         # 3. remove it from running_schedules and cancel it
                         future_event = self.running_schedules.pop(key, None)
@@ -231,7 +238,7 @@ class ScheduleEventHandler:
 
             # 1. get all key-value data in the localqueue and find the specified name using for-iteration
             # LOCALQUEUE: search a schedule with "ID" and "client" elementes
-            key_value_events = self.tdb.get_key_value_list()
+            key_value_events = self.schedule_db.get_key_value_list()
             log_debug(f"*** get_key_value_list: {key_value_events}")
 
             found_count = 0
@@ -249,7 +256,7 @@ class ScheduleEventHandler:
                         or (key and (key == client_info["key"]))
                         or (client_type and (client_type == client_info["type"]))
                     ):
-                        self.tdb.pop(key)
+                        self.schedule_db.pop(key)
                         self.save_schevt_to_db("unregister", registered_event)
                         # 3. remove it from running_schedules and cancel it
                         future_event = self.running_schedules.pop(key, None)
@@ -281,7 +288,7 @@ class ScheduleEventHandler:
 
         try:
             # 2. gather all key-value data from the localqueue
-            key_value_events = self.tdb.get_key_value_list(dlq)
+            key_value_events = self.schedule_db.get_key_value_list(dlq)
             list_item = [
                 schedule
                 for _, schedule in key_value_events
@@ -301,7 +308,7 @@ class ScheduleEventHandler:
     def get_groups(self):
         group_list = list()
         try:
-            key_value_events = self.tdb.get_key_value_list(False)
+            key_value_events = self.schedule_db.get_key_value_list(False)
             for _, value in key_value_events:
                 client_info = value["client"]
                 if not client_info["group"] in group_list:
@@ -320,7 +327,7 @@ class ScheduleEventHandler:
         schedule_event["next_time"] = datetime.timestamp(base) + retry_wait
 
         # 5. set the evetn to the localqueue
-        self.tdb.put(local_queue_key, schedule_event)
+        self.schedule_db.put(local_queue_key, schedule_event)
 
         handle_event_future = asyncio.run_coroutine_threadsafe(
             self.handle_event(local_queue_key, schedule_event.copy(), retry_wait),
@@ -345,7 +352,7 @@ class ScheduleEventHandler:
                 input_data_task["next"] = next_time
 
                 # 1.3. set the evetn to the localqueue
-                self.tdb.put(local_queue_key, schedule_event)
+                self.schedule_db.put(local_queue_key, schedule_event)
 
                 # 1.4. run handle_event
                 handle_event_future = asyncio.run_coroutine_threadsafe(
@@ -359,7 +366,7 @@ class ScheduleEventHandler:
                 # 2.1 check if the result of the previos task run is successful
                 if task_info.get("status") == ScheduleTaskStatus.DONE:
                     # 2.1.1 pop this schedule event if it is not ono of recurrring schedule types.
-                    self.tdb.pop(local_queue_key)
+                    self.schedule_db.pop(local_queue_key)
                     self.running_schedules.pop(local_queue_key, None)
                 # 2.2 in case of failed...
                 else:
@@ -375,7 +382,7 @@ class ScheduleEventHandler:
             client_info = schedule_event.get("client", {})
             if task_info:
                 hischeck = task_info.get("history_check", False)
-                db_connection_info = Config.db()
+                db_connection_info = Config.history()
                 if hischeck and db_connection_info:
                     (host, port, id, pw, db) = db_connection_info
                     initialize_global_database(id, pw, host, port, db)
@@ -410,20 +417,20 @@ class ScheduleEventHandler:
 
             # reset the schedule queue
             count = 0
-            key_value_list = self.tdb.get_key_value_list(False)
+            key_value_list = self.schedule_db.get_key_value_list(False)
             for key, value in key_value_list:
                 self.save_schevt_to_db("deleted", value)
-                self.tdb.pop(key, False)
+                self.schedule_db.pop(key, False)
                 future_event = self.running_schedules.pop(key, None)
                 future_event.cancel() if future_event else None
                 count += 1
             reset_result["schevt"] = count
 
             # reset the dead letter queue(dlq)
-            key_list = self.tdb.get_key_list(True)
+            key_list = self.schedule_db.get_key_list(True)
             count = 0
             for key in key_list:
-                self.tdb.pop(key, True)
+                self.schedule_db.pop(key, True)
                 count += 1
             reset_result["dlq"] = count
         except Exception as ex:
@@ -438,7 +445,7 @@ class ScheduleEventHandler:
             # 1. put it into the qeueue with the status 'waiting'
             task_info = schedule_event["task"]
             task_info["status"] = ScheduleTaskStatus.WAITING
-            self.tdb.put(key, schedule_event)
+            self.schedule_db.put(key, schedule_event)
 
             # 2. sleep with the input delay
             log_info(
@@ -466,13 +473,13 @@ class ScheduleEventHandler:
                 task_info["status"] = ScheduleTaskStatus.DONE
                 task_info["iteration"] += 1
                 task_info["retry_count"] = 0
-                self.tdb.put(key, schedule_event)
+                self.schedule_db.put(key, schedule_event)
                 history_db_status = "done"
             else:
                 # 5.2 put it into the queue with status 'Failed'
                 task_info["status"] = ScheduleTaskStatus.FAILED
                 task_info["retry_count"] += 1
-                self.tdb.put(key, schedule_event)
+                self.schedule_db.put(key, schedule_event)
                 history_db_status = "retry"
             self.save_schevt_to_db(history_db_status, schedule_event)
 

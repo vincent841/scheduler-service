@@ -8,10 +8,11 @@ import psycopg2 as pg2
 # from helper.logger import Logger
 # from helper.util import print_elasped_time
 
+from direct_queue.queue_abstraction import Queue
 from helper.util import convert_bytearray_to_dict
 
 
-class PGQueue:
+class PGQueue(Queue):
     TSDB_NAME = "schedules"
     DLQDB_NAME = "deadletters"
 
@@ -20,11 +21,11 @@ class PGQueue:
         try:
 
             self.dbconn = pg2.connect(
-                user=db_config.get("user", "postgres"),
-                password=db_config.get("password", "abcd1234"),
+                user=db_config.get("id", "postgres"),
+                password=db_config.get("pw", "abcd1234"),
                 host=db_config.get("host", "localhost"),
                 port=db_config.get("port", 5432),
-                database=db_config.get("database", "schedules"),
+                database=db_config.get("db", "schedules"),
             )
 
             # CREATE IF EXISTS
