@@ -3,7 +3,7 @@
 # local or pg
 queue: local
 
-local: ../evt_queue
+local: ../db/evt_queue
 
 # pg:
 #   host: xxx.xxx.xxx.xxx

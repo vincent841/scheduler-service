@@ -449,7 +449,7 @@ class ScheduleEventHandler:
 
             # 2. sleep with the input delay
             log_info(
-                f'***{key} about to apply the delay({delay}, {str(datetime.fromtimestamp(task_info["next"]))})'
+                f'***{key} about to apply the delay({delay}, {datetime.fromtimestamp(task_info["next"])})'
             )
             await asyncio.sleep(delay)
 
