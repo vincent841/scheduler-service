@@ -53,7 +53,7 @@ RE_RANGE = r"^(\d+)(?:-(\d+))?(?:\/(\d+))?$"  # global
 
 
 class CronTime:
-    def __init__(self, source, zone, utcOffset):
+    def __init__(self, source, zone="UTC", utcOffset=0):
         self.source = source
 
         if zone:
@@ -203,7 +203,7 @@ class CronTime:
         전체 구현에서 이러한 타임존 변환에 대한 기능을 검토해야 한다.
         """
 
-        tz = pytz.timezone("Asia/Amman")
+        tz = pytz.timezone(zone)
 
         if start.tzinfo is None or start.tzinfo.utcoffset(start) is None:
             start = tz.localize(start, is_dst=None)
@@ -508,13 +508,13 @@ class CronTime:
 
 
 if __name__ == "__main__":
-    # cron_time = CronTime("0 * * * * *", "Asia/Seoul", None)
-    # next_datetime = cron_time.get_next(datetime(2018, 6, 3, 0, 0), "Asia/Seoul")
-    # print(next_datetime)
+    cron_time = CronTime("0 * * * * *", "Asia/Seoul", None)
+    next_datetime = cron_time.get_next(datetime(2018, 6, 3, 0, 0), "Asia/Seoul")
+    print(next_datetime)
 
-    # cron_time = CronTime("0 0 */4 * * *", "Asia/Seoul", None)
-    # next_datetime = cron_time.get_next(datetime(2018, 6, 3, 0, 0), "Asia/Seoul")
-    # print(next_datetime)
+    cron_time = CronTime("0 0 */4 * * *", "Asia/Seoul", None)
+    next_datetime = cron_time.get_next(datetime(2018, 6, 3, 0, 0), "Asia/Seoul")
+    print(next_datetime)
 
     base = datetime.fromisoformat("2018-03-29T23:15")
 
@@ -529,3 +529,5 @@ if __name__ == "__main__":
     base = next_datetime
     next_datetime = cron_time.get_next(base, "Asia/Amman")
     print(next_datetime)
+
+    cron_time = CronTime("08 * * * * *")
