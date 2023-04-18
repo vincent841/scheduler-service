@@ -214,7 +214,7 @@ class CronTime:
         if start.tzinfo is None or start.tzinfo.utcoffset(start) is None:
             start = tz.localize(start, is_dst=None)
 
-        date = start
+        date = start.astimezone(pytz.timezone(zone))
 
         """
         TODO: check if 'toMillis()' of node.js is like timestamp() of python
@@ -391,7 +391,7 @@ class CronTime:
 
         return hours_jumped or minute_jumped
 
-    def find_previous_dst_jump(self, date: datetime, tz: str):
+    def find_previous_dst_jump(self, date: datetime, tz):
         maybe_jumping_point = date
 
         iteration_limit = 60 * 24
@@ -476,8 +476,8 @@ class CronTime:
             end_minute in self.time_units["minute"] and 0 in self.time_units["second"]
         )
 
-    def select_range(self, for_hour, start_hour, end_hour):
-        first_hour_minute_range: list = [xx for xx in range(start_mintue, 60)]
+    def select_range(self, for_hour, start_hour, end_hour, start_minute, end_minute):
+        first_hour_minute_range: list = [xx for xx in range(start_minute, 60)]
         last_hour_minute_range: list = [xx for xx in range(0, end_minute)]
         middle_hour_minute_range: list = [xx for xx in range(0, 60)]
 
@@ -489,7 +489,7 @@ class CronTime:
             return middle_hour_minute_range
 
     def check_time_in_skipped_range_multi_hour(
-        self, start_hour, start_mintue, end_hour, end_minute
+        self, start_hour, start_minute, end_hour, end_minute
     ):
         if start_hour >= end_hour:
             raise Exception(
@@ -500,7 +500,9 @@ class CronTime:
             if not hour in self.time_units["hour"]:
                 continue
 
-            using_range = self.select_range(hour, start_hour, end_hour)
+            using_range = self.select_range(
+                hour, start_hour, end_hour, start_minute, end_minute
+            )
 
             for minute in using_range:
                 if minute in self.time_units["minute"]:
