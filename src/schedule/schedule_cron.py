@@ -201,10 +201,16 @@ class CronTime:
         여기에서 입력되는 시작 시간과 타임존은 의미가 필요하다.
         본 구현에서는 시작 시간은 해당 타임존의 시간을 의미하며 별도의 변환이 필요하지 않다.
         전체 구현에서 이러한 타임존 변환에 대한 기능을 검토해야 한다.
+
+        또한, start는 aware인지 naive인지가 중요하다.
+        start가 aware라면 zone을 적용하지 않는다는 의미이며,
+        naive의 경우에만 zone의 입력값이 의미를 가진다.
+
+        여기에서, 타임존을 변경한다는 의미로 사용할 수 있다고 판단할 수도 있는데,
+        이 경우, naive 타입의 경우 기능 구현이 모호해질 수 있다.
         """
 
         tz = pytz.timezone(zone)
-
         if start.tzinfo is None or start.tzinfo.utcoffset(start) is None:
             start = tz.localize(start, is_dst=None)
 
@@ -260,7 +266,7 @@ class CronTime:
                 )
             ):
                 date = date + timedelta(days=1)
-                date = date.replace(houre=0, minute=0, second=0)
+                date = date.replace(hour=0, minute=0, second=0)
                 date = date.astimezone(tz)
 
                 if self.fowardDSTJump(0, 0, date):

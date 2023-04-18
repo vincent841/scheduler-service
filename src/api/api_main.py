@@ -94,9 +94,9 @@ async def get_schedules_with_resp_id(id: str) -> list:
     return api_get_schedules(id)
 
 
-@fast_api.post("/admin/reset")
-async def reset(admin_info: ScheduleAdmin) -> dict:
-    """
-    reset all queues
-    """
-    return api_reset(admin_info.dict())
+# @fast_api.post("/admin/reset")
+# async def reset(admin_info: ScheduleAdmin) -> dict:
+#     """
+#     reset all queues
+#     """
+#     return api_reset(admin_info.dict())
