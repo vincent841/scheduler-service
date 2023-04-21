@@ -30,7 +30,7 @@ class Config:
     @classmethod
     def history(cls):
         try:
-            config_data = cls.CONFIG_DATA.get("db", None)
+            config_data = cls.CONFIG_DATA.get("history", None)
             if not config_data:
                 return None
             assert (

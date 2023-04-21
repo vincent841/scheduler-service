@@ -213,8 +213,9 @@ class ScheduleCronTest(TestCase):
     """
 
     def test_strip_off_millisecond_1(self):
-        base = datetime.fromisoformat("2018-08-10T02:20:00.999")
-        base = base.astimezone(pytz.timezone("Asia/Seoul"))
+        base = pytz.timezone("Asia/Seoul").localize(
+            datetime.fromisoformat("2018-08-10T02:20:00.999")
+        )
 
         cron_time = CronTime("0 */10 * * * *")
         x = cron_time.get_next(base, "Asia/Seoul")
@@ -227,8 +228,9 @@ class ScheduleCronTest(TestCase):
         )
 
     def test_strip_off_millisecond_2(self):
-        base = datetime.fromisoformat("2018-08-10T02:19:59.999")
-        base = base.astimezone(pytz.timezone("Asia/Seoul"))
+        base = pytz.timezone("Asia/Seoul").localize(
+            datetime.fromisoformat("2018-08-10T02:19:59.999")
+        )
 
         cron_time = CronTime("0 */10 * * * *")
         x = cron_time.get_next(base, "Asia/Seoul")
@@ -275,18 +277,20 @@ class ScheduleCronTest(TestCase):
         )
 
     def test_change_timezone_2(self):
-        cur_date = datetime.fromisoformat("2018-10-25T23:00")
-        cur_date = cur_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-10-25T23:00")
+        )
 
         cron_time = CronTime("0 0 * * *")
-        next_date = cron_time.get_next(cur_date, "Asia/Amman")
+        next_date = cron_time.get_next(curr_date, "Asia/Amman")
         expected_date = datetime.fromisoformat("2018-10-26T00:00+03:00")
         expected_date = expected_date.astimezone(pytz.timezone("Asia/Amman"))
         self.assertEqual(next_date - expected_date, timedelta(0))
 
     def test_crontimer_internal_1(self):
-        curr_date = datetime.fromisoformat("2018-03-29T23:00")
-        curr_date = curr_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-10-25T23:00")
+        )
 
         cron_time = CronTime("* * * * *")
         for idx in range(100):
@@ -294,8 +298,9 @@ class ScheduleCronTest(TestCase):
             self.assertEqual(next_date - curr_date, timedelta(seconds=60))
 
     def test_crontimer_internal_2(self):
-        curr_date = datetime.fromisoformat("2018-03-29T23:15+02:00")
-        curr_date = curr_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-03-29T23:15")
+        )
 
         cron_time = CronTime("30 0 * * 5")
         next_date = cron_time.get_next(curr_date, "Asia/Amman")
@@ -312,8 +317,9 @@ class ScheduleCronTest(TestCase):
         self.assertEqual(next_date - curr_date, timedelta(seconds=3600 * 24 * 7))
 
     def test_crontimer_internal_3(self):
-        curr_date = datetime.fromisoformat("2018-03-29T23:45+02:00")
-        curr_date = curr_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-03-29T23:45")
+        )
 
         cron_time = CronTime("30 0 * * *")
         next_date = cron_time.get_next(curr_date, "Asia/Amman")
@@ -328,8 +334,9 @@ class ScheduleCronTest(TestCase):
         self.assertEqual(next_date - curr_date, timedelta(seconds=3600 * 24))
 
     def test_crontimer_internal_4(self):
-        curr_date = datetime.fromisoformat("2018-03-29T23:45+02:00")
-        curr_date = curr_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-03-29T23:45")
+        )
 
         cron_time = CronTime("30 * * * *")
         next_date = cron_time.get_next(curr_date, "Asia/Amman")
@@ -344,8 +351,9 @@ class ScheduleCronTest(TestCase):
         self.assertEqual(next_date - curr_date, timedelta(seconds=3600))
 
     def test_crontimer_internal_5(self):
-        curr_date = datetime.fromisoformat("2018-03-29T23:59+02:00")
-        curr_date = curr_date.astimezone(pytz.timezone("Asia/Amman"))
+        curr_date = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-03-29T23:59")
+        )
 
         cron_time = CronTime("* * * * *")
         next_date = cron_time.get_next(curr_date, "Asia/Amman")
@@ -359,19 +367,22 @@ class ScheduleCronTest(TestCase):
         cron_time = CronTime("* * * * *")
         tz = pytz.timezone("Asia/Amman")
 
-        maybeBadDate = datetime.fromisoformat("2018-03-31T00:59:00+03:00")
-        maybeBadDate.astimezone(tz)
+        maybeBadDate = pytz.timezone("Asia/Amman").localize(
+            datetime.fromisoformat("2018-03-31T00:59:00")
+        )
         cron_time.find_previous_dst_jump(maybeBadDate, tz)
 
         with self.assertRaises(Exception):
-            maybeBadDate = datetime.fromisoformat("2018-03-31T01:00:00+03:00")
-            maybeBadDate.astimezone(pytz.timezone("Asia/Amman"))
+            maybeBadDate = pytz.timezone("Asia/Amman").localize(
+                datetime.fromisoformat("2018-03-31T01:00:00")
+            )
             cron_time.find_previous_dst_jump(maybeBadDate, tz)
 
     def test_crontimer_internal_7(self):
         tz = pytz.timezone("Europe/Amsterdam")
-        end_date = datetime.fromisoformat("2023-01-01T16:00:00.000+01:00")
-        end_date = end_date.astimezone(tz)
+        end_date = pytz.timezone("Europe/Amsterdam").localize(
+            datetime.fromisoformat("2023-01-01T16:00:00")
+        )
 
         start_date = end_date - timedelta(minutes=30, seconds=1)
         start_date = start_date.astimezone(tz)
@@ -387,8 +398,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_8(self):
         tz = pytz.timezone("Europe/Amsterdam")
-        end_date = datetime.fromisoformat("2023-01-01T16:00:00.000+01:00")
-        end_date = end_date.astimezone(tz)
+        end_date = pytz.timezone("Europe/Amsterdam").localize(
+            datetime.fromisoformat("2023-01-01T16:00:00")
+        )
 
         start_date = end_date - timedelta(hours=1, seconds=1)
         start_date = start_date.astimezone(tz)
@@ -404,8 +416,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_9(self):
         tz = pytz.timezone("Europe/Amsterdam")
-        end_date = datetime.fromisoformat("2023-01-01T16:00:00.000+01:00")
-        end_date = end_date.astimezone(tz)
+        end_date = pytz.timezone("Europe/Amsterdam").localize(
+            datetime.fromisoformat("2023-01-01T16:00:00")
+        )
 
         start_date = end_date - timedelta(hours=1, seconds=1)
         start_date = start_date.astimezone(tz)
@@ -422,8 +435,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_10(self):
         tz = pytz.timezone("Europe/Amsterdam")
-        end_date = datetime.fromisoformat("2023-01-01T16:15:00.000+01:00")
-        end_date = end_date.astimezone(tz)
+        end_date = pytz.timezone("Europe/Amsterdam").localize(
+            datetime.fromisoformat("2023-01-01T16:15:00")
+        )
 
         start_date = end_date - timedelta(minutes=45, seconds=1)
         start_date = start_date.astimezone(tz)
@@ -440,8 +454,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_11(self):
         tz = pytz.timezone("Europe/Amsterdam")
-        end_date = datetime.fromisoformat("2023-01-01T16:15:00.000+01:00")
-        end_date = end_date.astimezone(tz)
+        end_date = pytz.timezone("Europe/Amsterdam").localize(
+            datetime.fromisoformat("2023-01-01T16:15:00")
+        )
 
         start_date = end_date - timedelta(hours=3, minutes=45, seconds=1)
         start_date = start_date.astimezone(tz)
@@ -482,7 +497,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_15(self):
         cron_time = CronTime("0 * * * *")
-        curr_date = datetime.fromisoformat("2018-11-02T23:00-03:00")
+        curr_date = pytz.timezone("America/Sao_Paulo").localize(
+            datetime.fromisoformat("2018-11-02T23:00")
+        )
         curr_date = curr_date.replace(second=0, microsecond=0)
 
         for idx in range(25):
@@ -492,7 +509,9 @@ class ScheduleCronTest(TestCase):
 
     def test_crontimer_internal_16(self):
         cron_time = CronTime("*/3 * * * *")
-        curr_date = datetime.fromisoformat("2018-11-02T23:00-03:00")
+        curr_date = pytz.timezone("America/Sao_Paulo").localize(
+            datetime.fromisoformat("2018-11-02T23:00")
+        )
         curr_date = curr_date.replace(second=0, microsecond=0)
 
         for idx in range(25):
