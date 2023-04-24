@@ -67,13 +67,11 @@ class ScheduleType:
             next_time = None
             delay = 0
             """
-            TODO: check if this routine doesn't have any
+            TODO: check if this routine doesn't have any exception or issue
             """
-
             cron_time = CronTime(schedule_event["schedule"], tz)
             next_datetime = cron_time.get_next(base, "Asia/Seoul")
             next_time = next_datetime.timestamp()
-            print(f"cron next time: {next_time}")
             delay = next_time - datetime.timestamp(base)
 
             # if len(cron_elements) == 5:
