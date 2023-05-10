@@ -13,4 +13,3 @@ email-validator
 strawberry-graphql[fastapi]
 pyjwt
 pytz
-local_crontab

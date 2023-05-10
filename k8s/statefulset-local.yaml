@@ -35,10 +35,10 @@ spec:
           securityContext:
             privileged: false
           env:
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
@@ -49,8 +49,7 @@ spec:
     - metadata:
         name: schevt-vol-template
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: 1Gi
-

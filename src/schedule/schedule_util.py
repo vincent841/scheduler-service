@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 from croniter import croniter
-from local_crontab import Converter
-import pytz
 
 
 def calculate_cron_unit(cron_element):
