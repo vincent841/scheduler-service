@@ -8,7 +8,7 @@ from api.api_method import (
     api_reset,
 )
 
-from api.api_interface import Schedule, ScheduleAdmin
+from api.api_data_type import Schedule, ScheduleAdmin
 from schedule.schedule_event_handler import ScheduleEventHandler
 
 
