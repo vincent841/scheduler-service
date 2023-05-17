@@ -1,5 +1,9 @@
 # 스케줄러 서비스
 
+## Deprecated
+moved to https://github.com/hatiolab/operato-foundation-service.git
+
+
 ## MSA 기반의 스케줄러 서비스
 
 ![MSA Scheduler Service](./assets/scheduler-service-msa.png "MSA Scheduler Service")
