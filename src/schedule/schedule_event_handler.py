@@ -143,14 +143,14 @@ class ScheduleEventHandler:
             self.save_schevt_to_db("register", schedule_event)
 
             # 6. start a schedule event task
-            handle_event_future = asyncio.run_coroutine_threadsafe(
-                self.handle_event(local_queue_key, schedule_event.copy(), delay),
-                asyncio.get_event_loop(),
-            )
-
+            # handle_event_future = asyncio.run_coroutine_threadsafe(
+            #     self.handle_event(local_queue_key, schedule_event.copy(), delay),
+            #     asyncio.get_event_loop(),
+            # )
             # 7. add the name of the current schedlue event to event_name list.
             #  to check the duplicated schedule name later
-            self.running_schedules[local_queue_key] = handle_event_future
+            # self.running_schedules[local_queue_key] = handle_event_future
+            self.run_task(local_queue_key, schedule_event.copy(), delay)
 
             # 8. return the result with the response id
             return {
@@ -274,6 +274,16 @@ class ScheduleEventHandler:
 
         return {"count": found_count}
 
+    def run_task(
+        self, local_queue_key: str, schedule_event: dict, retry_wait: int = 0
+    ) -> any:
+        handle_event_future = asyncio.run_coroutine_threadsafe(
+            self.handle_event(local_queue_key, schedule_event.copy(), retry_wait),
+            asyncio.get_event_loop(),
+        )
+        self.running_schedules[local_queue_key] = handle_event_future
+        return handle_event_future
+
     def get_schedules(
         self,
         resp_id: str,
@@ -329,11 +339,12 @@ class ScheduleEventHandler:
         # 5. set the evetn to the localqueue
         self.schedule_db.put(local_queue_key, schedule_event)
 
-        handle_event_future = asyncio.run_coroutine_threadsafe(
-            self.handle_event(local_queue_key, schedule_event.copy(), retry_wait),
-            asyncio.get_event_loop(),
-        )
-        self.running_schedules[local_queue_key] = handle_event_future
+        # handle_event_future = asyncio.run_coroutine_threadsafe(
+        #     self.handle_event(local_queue_key, schedule_event.copy(), retry_wait),
+        #     asyncio.get_event_loop(),
+        # )
+        # self.running_schedules[local_queue_key] = handle_event_future
+        self.run_task(local_queue_key, schedule_event.copy(), retry_wait)
 
     def register_next(self, schedule_event):
         try:
@@ -355,11 +366,13 @@ class ScheduleEventHandler:
                 self.schedule_db.put(local_queue_key, schedule_event)
 
                 # 1.4. run handle_event
-                handle_event_future = asyncio.run_coroutine_threadsafe(
-                    self.handle_event(local_queue_key, schedule_event.copy(), delay),
-                    asyncio.get_event_loop(),
-                )
-                self.running_schedules[local_queue_key] = handle_event_future
+                # handle_event_future = asyncio.run_coroutine_threadsafe(
+                #     self.handle_event(local_queue_key, schedule_event.copy(), delay),
+                #     asyncio.get_event_loop(),
+                # )
+                # self.running_schedules[local_queue_key] = handle_event_future
+                self.run_task(local_queue_key, schedule_event.copy(), delay)
+
             # 2. check if scheluer event type is non-recurring
             else:
                 task_info = schedule_event.get("task")
