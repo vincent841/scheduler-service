@@ -1,5 +1,7 @@
 # application-specifc
+.DS_Store
 k8s/config/config.yaml
+local-test-db/postgres_data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
