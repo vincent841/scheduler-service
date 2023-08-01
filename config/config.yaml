@@ -1,19 +1,18 @@
 ---
-# local or pg
-queue: local
+database:
+  host: 127.0.0.1
+  port: 55432
+  id: postgres
+  pw: abcd1234
+  db: scheduler
 
-local: ../evt_queue
-# pg:
-#   host: xxx.xxx.xxx.xxx
-#   port: 1234
-#   id: username
-#   pw: likepassword
-#   db: likedbname
+scheduler:
+  debug: false
+  fetch_interval: 0.5
+  fetch_count: 1
+  table: schedule_queue
 
-# history:
-#   host: xxx.xxx.xxx.xxx
-#   port: 1234
-#   id: username
-#   pw: likepassword
-#   db: likedbname
+history:
+  table: schedule_history
+
 
